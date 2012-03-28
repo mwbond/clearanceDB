@@ -1,0 +1,29 @@
+$def with (location)
+<!DOCTYPE HTML>
+<html>
+<head>
+
+<title>
+Sabra-Wang's Clearance Interval Database
+</title>
+</head>
+
+<body>
+	<a href="/overview">Manage Intersections</a>
+	<br />
+	<br />
+	Current City, State: <b>$location</b>
+	<br />
+	<form name='form' method='POST' action='update_location'>
+		<input type='text' name='location' />
+		<input type="submit" value="Update" />
+	</form>
+	<br />
+	<form method="POST" enctype="multipart/form-data" action="">
+		<input type="file" name="layoutfile" />
+		<br/>
+		<input type="submit" value='Upload LAYOUT.CSV'/>
+	</form>
+</body>
+
+</html>

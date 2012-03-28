@@ -1,0 +1,201 @@
+$def with (kwargs)
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Sabra-Wang's Clearance Interval Database</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no' />
+	<meta charset='UTF-8' />
+	<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=AIzaSyAWXZXhG-0Hltuxf0CSwjZjf164WwnDFCE&sensor=false&libraries=geometry'></script>
+	<script type='text/javascript'>
+		var map;
+		var measure = {mvcMarkers:new google.maps.MVCArray(), mvcLine:new google.maps.MVCArray(), line:null, lineLength:'0'};
+		var initOptions;
+		var latlng = new google.maps.LatLng($kwargs['map_lat'], $kwargs['map_lng']);
+		
+		function initialize()
+		{
+			initOptions = {
+				center: latlng,
+				zoom: $kwargs['map_zoom'],
+				mapTypeId: google.maps.MapTypeId.HYBRID
+			};
+			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
+			google.maps.event.addListener(map, 'click', addLatLng);
+			google.maps.event.addListener(map, 'center_changed', function()
+			{
+				var current_latlng = map.getCenter();
+				var lat = current_latlng.lat().toString();
+				var lng = current_latlng.lng().toString();
+				document.getElementById('map_lat').value = lat;
+				document.getElementById('map_lat_txt').innerHTML = lat;
+				document.getElementById('map_lng').value = lng;
+				document.getElementById('map_lng_txt').innerHTML = lng;
+			});
+			google.maps.event.addListener(map, 'zoom_changed', function()
+			{
+				var zoom = map.getZoom().toString();
+				document.getElementById('map_zoom').value = zoom;
+				document.getElementById('map_zoom_txt').innerHTML = zoom;
+			});
+		}
+
+		function updateMeasurement(event)
+		{
+			var length;
+			var path = measure.line.getPath();
+			if(path.getLength() > 1)
+			{
+				length = google.maps.geometry.spherical.computeLength(path) * 3.28;
+				measure.lineLength = length.toFixed(0).toString();
+				length = measure.lineLength + '\'';
+				document.getElementById('measurement').innerHTML = length;
+			}
+		}
+
+		function addLatLng(event)
+		{
+			var latlng = event.latLng;
+			var index = measure.mvcLine.getLength() - 1;
+			if(index > 0)
+			{
+				//measureReset()
+			}
+
+			var marker = new google.maps.Marker({
+				map: map,
+				position: latlng,
+				draggable: true,
+				raiseOnDrag: false,
+				title: "Drag me to change shape",
+				icon: new google.maps.MarkerImage("/static/measure-vertex.png", new google.maps.Size(9, 9), new google.maps.Point(0, 0), new google.maps.Point(5, 5))
+			});
+
+			measure.mvcMarkers.push(marker);
+			measure.mvcLine.push(latlng);
+			index = measure.mvcLine.getLength() - 1;
+
+			google.maps.event.addListener(marker, "mouseover", function()
+			{
+				marker.setIcon(new google.maps.MarkerImage("/static/measure-vertex-hover.png", new google.maps.Size(15, 15), new google.maps.Point(0, 0), new google.maps.Point(8, 8)));
+			});
+			google.maps.event.addListener(marker, "mouseout", function()
+			{
+				marker.setIcon(new google.maps.MarkerImage("/static/measure-vertex.png", new google.maps.Size(9, 9), new google.maps.Point(0, 0), new google.maps.Point(5, 5)));
+			});
+			google.maps.event.addListener(marker, "drag", function(event) {measure.mvcLine.setAt(index, event.latLng);});
+			google.maps.event.addListener(marker, "dragend", function()
+			{
+				if (measure.mvcLine.getLength() > 1)
+				{
+					updateMeasurement();
+				}
+			});
+
+			if(index > 0)
+			{
+				if(!measure.line)
+				{
+					measure.line = new google.maps.Polyline({
+						map: map,
+						clickable: false,
+						strokeColor: "#FF0000",
+						strokeOpacity: 1,
+						strokeWeight: 3,
+						path:measure.mvcLine
+					});
+				}
+				updateMeasurement();
+			}
+		}
+
+		function updateForm(elem_id)
+		{
+			var length = measure.lineLength;
+			if(length == '0')
+			{
+				document.getElementById(elem_id + '_txt').innerHTML = 'N/A';
+				document.getElementById(elem_id + '_lat').value = '';
+				document.getElementById(elem_id + '_lng').value = '';
+			}
+			else
+			{
+				var latlng1 = measure.mvcLine.getAt(0);
+				var latlng2 = measure.mvcLine.getAt(1);
+				document.getElementById(elem_id + '_txt').innerHTML = length + '\'';
+				document.getElementById(elem_id + '_lat1').value = latlng1.lat().toString(); 
+				document.getElementById(elem_id + '_lat2').value = latlng2.lat().toString(); 
+				document.getElementById(elem_id + '_lng1').value = latlng1.lng().toString(); 
+				document.getElementById(elem_id + '_lng2').value = latlng2.lng().toString(); 
+			}
+		}
+
+		function measureReset()
+		{
+			if(measure.line)
+			{
+				measure.line.setMap(null);
+				measure.line = null
+			}
+			
+			measure.mvcLine.clear();
+			
+			measure.mvcMarkers.forEach(function(elem, index){elem.setMap(null);});
+			measure.mvcMarkers.clear();
+			measure.lineLength = '0';
+			document.getElementById('measurement').innerHTML = '0\'';
+		}
+	</script>
+</head>
+<body onload='initialize()'>
+	<div id='wrapper' style='margin:0 auto; width:1200px'>
+		<div id='map_canvas' style='margin:0 auto; width:600px; height:600px; float:left'></div>
+		<div id='form' style='float:left'>
+		<a href='http://localhost:8080'>Go Home</a>
+		<form name='int_info' method='POST' action='update_intersection'>
+			<table>
+				<tr><td><strong>Int ID:</strong></td><td><input type='text' name='int_id' size='4' value='$kwargs['int_id']' /></td></tr>
+				<tr><td><strong>Major Road:</strong></td><td><input type='text' name='major' size='40' value='$kwargs['major']' /></td></tr>
+				<tr><td><strong>Intersecting Road:</strong></td><td><input type='text' name='minor' size='40' value='$kwargs['minor']' /></td></tr>
+				<tr><td><strong>Latitude:</strong></td><td><b id='map_lat_txt' name='map_lat_txt'>$kwargs['map_lat']</b></td></tr>
+					<input type='hidden' id='map_lat' name='map_lat' value='$kwargs['map_lat']' />
+				<tr><td><strong>Longitude:</strong></td><td><b id='map_lng_txt' name='map_lng_txt'>$kwargs['map_lng']</b></td></tr>
+					<input type='hidden' id='map_lng' name='map_lng' value='$kwargs['map_lng']' />
+				<tr><td><strong>Zoom:</strong></td><td><b id='map_zoom_txt' name='map_zoom_txt'>$kwargs['map_zoom']</b></td></tr>
+					<input type='hidden' id='map_zoom' name='map_zoom' value='$kwargs['map_zoom']' />
+			</table>
+			<input type='submit' value='Update Intersection Information' />
+		</form>
+		<br />
+		<form name='phase_info' method='POST' action='update_intersection'>
+			<input type='hidden' id='int_id' name='int_id' value='$kwargs['int_id']' />
+			<table>
+				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>0'</strong></td></tr>
+				<tr>
+					<td><strong>Phase 1</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p1_yar')">Set YAR (ft)</button>
+						<b id='p1_yar_txt' name='p1_yar_txt'>N/A</b>
+						<input type='hidden' id='p1_yar_lat1' name='p1_yar_lat1' value='$kwargs['p1_yar_lat1']' />
+						<input type='hidden' id='p1_yar_lat2' name='p1_yar_lat2' value='$kwargs['p1_yar_lat2']' />
+						<input type='hidden' id='p1_yar_lng1' name='p1_yar_lng1' value='$kwargs['p1_yar_lng1']' />
+						<input type='hidden' id='p1_yar_lng2' name='p1_yar_lng2' value='$kwargs['p1_yar_lng2']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p1_fdw')">Set FDW (ft)</button>
+						<b id='p1_fdw_txt' name='p1_fdw_txt'>N/A</b>
+						<input type='hidden' id='p1_fdw_lat1' name='p1_fdw_lat1' value='$kwargs['p1_fdw_lat1']' />
+						<input type='hidden' id='p1_fdw_lat2' name='p1_fdw_lat2' value='$kwargs['p1_fdw_lat2']' />
+						<input type='hidden' id='p1_fdw_lng1' name='p1_fdw_lng1' value='$kwargs['p1_fdw_lng1']' />
+						<input type='hidden' id='p1_fdw_lng2' name='p1_fdw_lng2' value='$kwargs['p1_fdw_lng2']' />
+					</td>
+				</tr>
+			</table>
+			<input type='submit' value='Update Phasing Information' />
+			<br />
+		</form>
+		</div>
+		<a href="/print_int?IntID=$kwargs['int_id']">View Output</a></td>
+	</div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+$def with (db_info)
+<!DOCTYPE HTML>
+<html>
+<head>
+<SCRIPT LANGUAGE="JavaScript">
+	function toggle(source)
+	{
+		checkboxes = document.getElementsByName('IntID');
+		for(var i in checkboxes)
+			checkboxes[i].checked = source.checked;
+	}
+</script>
+<title>
+Sabra-Wang's Clearance Interval Database
+</title>
+</head>
+
+<body>
+	<a href="http://localhost:8080">Go Home</a>
+	<form name='entry_form' method='POST' action='add_entry'>
+		<input type='text' placeholder='Intersection ID' name='int_id' />
+		<input type='text' placeholder='Major Road Name' name='int_major' />
+		<input type='text' placeholder='Minor Road Name' name='int_minor' />
+		<input type="submit" value="Add Entry" />
+	</form>
+	<hr/>
+
+	<form name='batch_form' method='POST' action='batch_process'>
+		<table>
+		<tr><td><input type="checkbox" onClick="toggle(this)" /></td>
+			<td>Select All</td>
+		</tr>
+		$for index in range(len(db_info)):
+			<tr>
+			<td><input type="checkbox" name='IntID' value='$db_info[index][0]' /></td>
+			<td><b>$db_info[index][0]:</b></td>
+			<td><a href="/intersection?IntID=$db_info[index][0]">$db_info[index][1]</a></td>
+			</tr>
+		</table>
+		<br />
+		<input type="submit" name="process" value='Delete Intersections'>
+		<input type="submit" name='process' value='Create PDFs'/>
+	</form>
+	<br />
+	<br />
+</body>
+</html>

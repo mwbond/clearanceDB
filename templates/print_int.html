@@ -1,0 +1,90 @@
+$def with (kwargs)
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Sabra-Wang's Clearance Interval Database</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no' />
+	<meta charset='UTF-8' />
+	<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=AIzaSyAWXZXhG-0Hltuxf0CSwjZjf164WwnDFCE&sensor=false&libraries=geometry'></script>
+	<script type='text/javascript'>
+		var map;
+		var polyOptions;
+		var initOptions;
+		var latlng = new google.maps.LatLng($kwargs['map_lat'], $kwargs['map_lng']);
+		function initialize()
+		{
+			initOptions = {
+				center: latlng,
+				zoom: $kwargs['map_zoom'],
+				mapTypeId: google.maps.MapTypeId.HYBRID
+			};
+			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
+			polyOptions = {
+				editable: true,
+				strokeColor: '#ff0000',
+				fillOpacity: 1,
+				strokeWeight: 3
+			};
+			poly = new google.maps.Polyline(polyOptions);
+			poly.setMap(map);
+			placeMeasurements();
+		}
+
+		function placeMeasurements();
+		{
+
+		}
+
+		function textOverlay(latlng, text, map)
+		{
+			this.latlng_ = latlng;
+			this.text_ = text;
+			this.map_ = map;
+			this.div_ = null;
+			this.setMap(map);
+		}
+
+		textOverlay.prototype = new google.maps.OverlayView();
+
+		textOverlay.prototype.onAdd = function()
+		{
+			var div = document.createElement('DIV');
+			div.style.border = 'none';
+			div.style.borderWidth = '0px';
+			div.style.position = 'absolute';
+			div.style.color = '#ff0000';
+			div.style.fontWeight = 'bold';
+			div.style.fontSize = '24px';
+			div.innerHTML = this.text_;
+			this.div_ = div;
+			var panes = this.getPanes();
+			panes.floatPane.appendChild(div);
+		}
+		textOverlay.prototype.draw = function()
+		{
+			var overlayProjection = this.getProjection();
+			var position = overlayProjection.fromLatLngToDivPixel(this.latlng_);
+			var div = this.div_;
+			div.style.left = position.x +'px';
+			div.style.top = position.y + 'px';
+		}
+	</script>
+</head>
+<body onload='initialize()'>
+	<a href='http://localhost:8080'>Go Home</a>
+	<h1 style='text-align:center'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</ h1>
+
+	<div id='map_canvas' style='margin:auto;width:600px;height:600px'></div>
+
+	<form name='phase_info' method='POST' action='update_phase'>
+		<table style='margin:auto'>
+			<tr>
+			<td>
+
+			</td>
+			</tr>
+		</table>
+		<br />
+	</form>
+</body>
+</html>
