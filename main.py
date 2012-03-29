@@ -11,7 +11,7 @@ urls = ('/', 'home',
 		'/add_entry', 'add_entry',
 		'/batch_process', 'batch_process',
 		'/update_intersection', 'update_intersection',
-		'/print_int', 'print_int',
+		'/output', 'output',
 		'/(.*)/', 'redirect')
 
 class home:
@@ -70,12 +70,12 @@ class add_entry:
 		db.modify(**form)
 		raise web.seeother('/overview')
 
-class print_int:
+class output:
 	def GET(self):
 		int_id = web.input().IntID
 		kwargs = db.get_info(int_id)
 		render = web.template.render('templates')
-		return render.print_int(kwargs)
+		return render.output(kwargs)
 
 class batch_process:
 	def POST(self):

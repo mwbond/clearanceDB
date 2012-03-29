@@ -8,31 +8,46 @@ $def with (kwargs)
 	<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=AIzaSyAWXZXhG-0Hltuxf0CSwjZjf164WwnDFCE&sensor=false&libraries=geometry'></script>
 	<script type='text/javascript'>
 		var map;
-		var polyOptions;
-		var initOptions;
 		var latlng = new google.maps.LatLng($kwargs['map_lat'], $kwargs['map_lng']);
+
 		function initialize()
 		{
-			initOptions = {
+			var initOptions = {
 				center: latlng,
 				zoom: $kwargs['map_zoom'],
 				mapTypeId: google.maps.MapTypeId.HYBRID
 			};
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
-			polyOptions = {
-				editable: true,
-				strokeColor: '#ff0000',
-				fillOpacity: 1,
-				strokeWeight: 3
-			};
-			poly = new google.maps.Polyline(polyOptions);
-			poly.setMap(map);
-			placeMeasurements();
+			drawLine('$kwargs['p1_yar_line']', '#ff0000');
+			drawLine('$kwargs['p1_fdw_line']', '#fff000');
 		}
 
-		function placeMeasurements();
+		function drawLine(latlng_txt, color)
 		{
+			var path = createPath(latlng_txt);
+			var polyOptions = {
+					path: path,
+					fillOpacity: 1,
+					strokeWeight: 3,
+					strokeColor: color
+			};
+			var line = new google.maps.Polyline(polyOptions);
+			line.setMap(map);
+		}
 
+		function createPath(latlng_txt)
+		{
+			var path = new google.maps.MVCArray();
+			for(index=0; index<2; index++)
+			{
+				coordinate = latlng_txt.split('+')[index];
+				coordinate = coordinate.split('(')[1];
+				coordinate = coordinate.split(')')[0];
+				lat = coordinate.split(', ')[0];
+				lng = coordinate.split(', ')[1];
+				path.push(new google.maps.LatLng(parseFloat(lat), parseFloat(lng)));
+			}
+			return path;
 		}
 
 		function textOverlay(latlng, text, map)

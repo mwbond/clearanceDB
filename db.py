@@ -35,10 +35,6 @@ def get_info(int_id='0'):
 	results = DB.select('intersection', where='int_id=$int_id', vars={'int_id':int_id})
 	return dict(results[0])
 
-def change_id(new_id, old_id):
-	pass
-	#DB.update('intersection', where='id=$old_id', id='$new_id' vars={'new_id':int_id, 'old_id':old_id} )
-
 # Edits existing entries if ID is in DB, otherwise creates an entry
 # with the default location. If no ID is given, the location is changed for the
 # entire DB EDIT
@@ -52,4 +48,4 @@ def modify(**kwargs):
 			kwargs.update({'int_id':int_id, 'location':loc})
 			DB.insert('intersection', **kwargs)
 	elif 'location' in kwargs:
-		DB.update('intersection', location=kwargs['location'])
+		DB.update('intersection', where='1=1', location=kwargs['location'])

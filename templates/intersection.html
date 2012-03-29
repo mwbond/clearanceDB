@@ -38,18 +38,40 @@ $def with (kwargs)
 				document.getElementById('map_zoom_txt').innerHTML = zoom;
 			});
 		}
-
-		function updateMeasurement(event)
+		
+		function getLength(path)
 		{
-			var length;
-			var path = measure.line.getPath();
 			if(path.getLength() > 1)
 			{
 				length = google.maps.geometry.spherical.computeLength(path) * 3.28;
 				measure.lineLength = length.toFixed(0).toString();
 				length = measure.lineLength + '\'';
-				document.getElementById('measurement').innerHTML = length;
+				return length;
 			}
+			return 'N/A'
+		}
+
+		function createPath(latlng_txt)
+		{
+			var path = new google.maps.MVCArray();
+			for(index=0; index<2; index++)
+			{
+				coordinate = latlng_txt.split('+')[index];
+				coordinate = coordinate.split('(')[1];
+				coordinate = coordinate.split(')')[0];
+				lat = coordinate.split(', ')[0];
+				lng = coordinate.split(', ')[1];
+				path.push(new google.maps.LatLng(parseFloat(lat), parseFloat(lng)));
+			}
+			return path;
+
+		}
+
+		function updateMeasurement(event)
+		{
+			var path = measure.line.getPath();
+			var length = getLength(path);
+			document.getElementById('measurement').innerHTML = length;
 		}
 
 		function addLatLng(event)
@@ -58,7 +80,7 @@ $def with (kwargs)
 			var index = measure.mvcLine.getLength() - 1;
 			if(index > 0)
 			{
-				//measureReset()
+				measureReset()
 			}
 
 			var marker = new google.maps.Marker({
@@ -114,18 +136,14 @@ $def with (kwargs)
 			if(length == '0')
 			{
 				document.getElementById(elem_id + '_txt').innerHTML = 'N/A';
-				document.getElementById(elem_id + '_lat').value = '';
-				document.getElementById(elem_id + '_lng').value = '';
+				document.getElementById(elem_id + '_line').value = '';
 			}
 			else
 			{
-				var latlng1 = measure.mvcLine.getAt(0);
-				var latlng2 = measure.mvcLine.getAt(1);
+				var latlng1 = measure.mvcLine.getAt(0).toString();
+				var latlng2 = measure.mvcLine.getAt(1).toString();
 				document.getElementById(elem_id + '_txt').innerHTML = length + '\'';
-				document.getElementById(elem_id + '_lat1').value = latlng1.lat().toString(); 
-				document.getElementById(elem_id + '_lat2').value = latlng2.lat().toString(); 
-				document.getElementById(elem_id + '_lng1').value = latlng1.lng().toString(); 
-				document.getElementById(elem_id + '_lng2').value = latlng2.lng().toString(); 
+				document.getElementById(elem_id + '_line').value = latlng1 + '+' + latlng2;
 			}
 		}
 
@@ -142,12 +160,12 @@ $def with (kwargs)
 			measure.mvcMarkers.forEach(function(elem, index){elem.setMap(null);});
 			measure.mvcMarkers.clear();
 			measure.lineLength = '0';
-			document.getElementById('measurement').innerHTML = '0\'';
+			document.getElementById('measurement').innerHTML = 'N/A';
 		}
 	</script>
 </head>
 <body onload='initialize()'>
-	<div id='wrapper' style='margin:0 auto; width:1200px'>
+	<div id='wrapper' style='margin:0 auto; width:1500px'>
 		<div id='map_canvas' style='margin:0 auto; width:600px; height:600px; float:left'></div>
 		<div id='form' style='float:left'>
 		<a href='http://localhost:8080'>Go Home</a>
@@ -169,33 +187,30 @@ $def with (kwargs)
 		<form name='phase_info' method='POST' action='update_intersection'>
 			<input type='hidden' id='int_id' name='int_id' value='$kwargs['int_id']' />
 			<table>
-				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>0'</strong></td></tr>
+				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
 				<tr>
 					<td><strong>Phase 1</strong></td>
 					<td>
 						<button type='button' onclick="updateForm('p1_yar')">Set YAR (ft)</button>
-						<b id='p1_yar_txt' name='p1_yar_txt'>N/A</b>
-						<input type='hidden' id='p1_yar_lat1' name='p1_yar_lat1' value='$kwargs['p1_yar_lat1']' />
-						<input type='hidden' id='p1_yar_lat2' name='p1_yar_lat2' value='$kwargs['p1_yar_lat2']' />
-						<input type='hidden' id='p1_yar_lng1' name='p1_yar_lng1' value='$kwargs['p1_yar_lng1']' />
-						<input type='hidden' id='p1_yar_lng2' name='p1_yar_lng2' value='$kwargs['p1_yar_lng2']' />
+						<b id='p1_yar_txt'><script type='text/javascript'>document.write(getLength(createPath('$kwargs['p1_yar_line']')))</script></b>
+						<input type='hidden' id='p1_yar_line' name='p1_yar_line' value='$kwargs['p1_yar_line']' />
 					</td>
 					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p1_fdw')">Set FDW (ft)</button>
-						<b id='p1_fdw_txt' name='p1_fdw_txt'>N/A</b>
-						<input type='hidden' id='p1_fdw_lat1' name='p1_fdw_lat1' value='$kwargs['p1_fdw_lat1']' />
-						<input type='hidden' id='p1_fdw_lat2' name='p1_fdw_lat2' value='$kwargs['p1_fdw_lat2']' />
-						<input type='hidden' id='p1_fdw_lng1' name='p1_fdw_lng1' value='$kwargs['p1_fdw_lng1']' />
-						<input type='hidden' id='p1_fdw_lng2' name='p1_fdw_lng2' value='$kwargs['p1_fdw_lng2']' />
+						<b id='p1_fdw_txt'><script type='text/javascript'>document.write(getLength(createPath('$kwargs['p1_fdw_line']')))</script></b>
+						<input type='hidden' id='p1_fdw_line' name='p1_fdw_line' value='$kwargs['p1_fdw_line']' />
 					</td>
+					<td><input type='text' name='p1_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p1_dir']' /></td>
+					<td><input type='text' name='p1_road' size='15' placeholder='Road Name' value='$kwargs['p1_road']' /></td>
+					<td><input type='text' name='p1_grade' size='5' placeholder='Grade (%)' value='$kwargs['p1_grade']' /></td>
+					<td><input type='text' name='p1_speed' size='5' placeholder='MPH' value='$kwargs['p1_speed']' /></td>
 				</tr>
 			</table>
 			<input type='submit' value='Update Phasing Information' />
 			<br />
 		</form>
 		</div>
-		<a href="/print_int?IntID=$kwargs['int_id']">View Output</a></td>
 	</div>
 </body>
 </html>
