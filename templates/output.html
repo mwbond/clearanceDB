@@ -20,10 +20,17 @@ $def with (kwargs)
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
 			drawLine('$kwargs['p1_yar_line']', '#ff0000');
 			drawLine('$kwargs['p1_fdw_line']', '#fff000');
+			//'#0000ff' blue
+			//'#00ff00' green
+			//'#ff00ff' purple
 		}
 
 		function drawLine(latlng_txt, color)
 		{
+			if(!latlng_txt)
+			{
+				return;
+			}
 			var path = createPath(latlng_txt);
 			var polyOptions = {
 					path: path,
@@ -32,7 +39,13 @@ $def with (kwargs)
 					strokeColor: color
 			};
 			var line = new google.maps.Polyline(polyOptions);
+			var position = google.maps.geometry.spherical.interpolate(path.getAt(0), path.getAt(1), .5);
+			var length = google.maps.geometry.spherical.computeLength(path) * 3.28;
+			length = length.toFixed(0).toString() + "\'";
+			var text = new textOverlay(position, length, map);
 			line.setMap(map);
+			var poly = new google.maps.Polyline(polyOptions);
+			poly.setMap(map);
 		}
 
 		function createPath(latlng_txt)
@@ -67,9 +80,10 @@ $def with (kwargs)
 			div.style.border = 'none';
 			div.style.borderWidth = '0px';
 			div.style.position = 'absolute';
-			div.style.color = '#ff0000';
+			div.style.color = '#000000';
 			div.style.fontWeight = 'bold';
-			div.style.fontSize = '24px';
+			div.style.fontSize = '18px';
+			div.style.backgroundColor = '#ffffff';
 			div.innerHTML = this.text_;
 			this.div_ = div;
 			var panes = this.getPanes();
@@ -87,19 +101,33 @@ $def with (kwargs)
 </head>
 <body onload='initialize()'>
 	<a href='http://localhost:8080'>Go Home</a>
-	<h1 style='text-align:center'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</ h1>
-
+	<p style='margin-bottom:10px;text-align:center;font-size:36px;font-weight:bold'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</p>
 	<div id='map_canvas' style='margin:auto;width:600px;height:600px'></div>
-
-	<form name='phase_info' method='POST' action='update_phase'>
-		<table style='margin:auto'>
-			<tr>
-			<td>
-
-			</td>
-			</tr>
-		</table>
-		<br />
-	</form>
+	<table style='margin:auto;font-size:20px' border='1'>
+		<tr>
+			<td />
+			<td colspan='8'><b>PHASE NUMBER</b></td>
+		<tr>
+			<td />
+			<td><b>1</b></td>
+			<td><b>2</b></td>
+			<td><b>3</b></td>
+			<td><b>4</b></td>
+			<td><b>5</b></td>
+			<td><b>6</b></td>
+			<td><b>7</b></td>
+			<td><b>8</b></td>
+		</tr>
+		<tr>
+			<td><b>Yellow (Y)</b></td>
+		</tr>
+		<tr>
+			<td><b>All-Red (AR)</b></td>
+		</tr>
+		<tr>
+			<td><b>Flashing Don't Walk (FDW)</b></td>
+		</tr>
+	</table>
+</form>
 </body>
 </html>
