@@ -12,14 +12,16 @@ $def with (kwargs)
 
 		function initialize()
 		{
+			var length;
 			var initOptions = {
 				center: latlng,
 				zoom: $kwargs['map_zoom'],
 				mapTypeId: google.maps.MapTypeId.HYBRID
 			};
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
-			drawLine('$kwargs['p1_yar_line']', '#ff0000');
-			drawLine('$kwargs['p1_fdw_line']', '#fff000');
+			yar_length = drawLine('$kwargs['p1_yar_line']', '#ff0000');
+			fdw_length = drawLine('$kwargs['p1_fdw_line']', '#fff000');
+			updateTable('p1', yar_length, fdw_length, '$kwargs['p1_grade']', '$kwargs['p1_speed']', '$kwargs['p1_mov']');
 			//'#0000ff' blue
 			//'#00ff00' green
 			//'#ff00ff' purple
@@ -29,7 +31,7 @@ $def with (kwargs)
 		{
 			if(!latlng_txt)
 			{
-				return;
+				return 0;
 			}
 			var path = createPath(latlng_txt);
 			var polyOptions = {
@@ -41,11 +43,12 @@ $def with (kwargs)
 			var line = new google.maps.Polyline(polyOptions);
 			var position = google.maps.geometry.spherical.interpolate(path.getAt(0), path.getAt(1), .5);
 			var length = google.maps.geometry.spherical.computeLength(path) * 3.28;
-			length = length.toFixed(0).toString() + "\'";
-			var text = new textOverlay(position, length, map);
+			var txt_length = length.toFixed(0).toString() + "\'";
+			var text = new textOverlay(position, txt_length, map);
 			line.setMap(map);
 			var poly = new google.maps.Polyline(polyOptions);
 			poly.setMap(map);
+			return length;
 		}
 
 		function createPath(latlng_txt)
@@ -70,6 +73,65 @@ $def with (kwargs)
 			this.map_ = map;
 			this.div_ = null;
 			this.setMap(map);
+		}
+
+		function updateTable(elem_id, yar_length, fdw_length, grade, speed, mov);
+		{
+			var yellow = calculateYellow(yar_length, speed, grade);
+			var red = calculateRed(yar_length, speed, mov);
+
+		}
+
+		function calculateFDW(length, red)
+		{
+			if(length==0)
+			{
+				return 0;
+			}
+			var pct = length/3.5;
+			return Math.ceil(pct - Math.max(red, 3));
+		}
+
+		function calculateYellow(length, speed, grade)
+		{
+			if(length==0)
+			{
+				return 0;
+			}
+			var yellow = 1 + (0.733*speed)/(10 + (0.32*grade));
+			return yellow;
+		}
+
+		function calculateRed(length, speed)
+		{
+			if(length==0)
+			{
+				return 0;
+			}
+			var red = length/speed;
+			return red;
+		}
+
+		function roundDownToHalf(value)
+		{ 
+			var down = Math.floor(value);
+			var rem = value - down;
+			if(rem >= 0.5)
+			{
+				return down + 0.5;
+			}
+			return down;
+		}
+
+		function roundUpToHalf(value)
+		{ 
+			var up = Math.ceil(value);
+			var rem = up - value;
+			if(rem >= 0.5)
+			{
+				return up - 0.5;
+			}
+			return up;
 		}
 
 		textOverlay.prototype = new google.maps.OverlayView();
@@ -120,12 +182,36 @@ $def with (kwargs)
 		</tr>
 		<tr>
 			<td><b>Yellow (Y)</b></td>
+			<td id='p1_y'></td>
+			<td id='p2_y'></td>
+			<td id='p3_y'></td>
+			<td id='p4_y'></td>
+			<td id='p5_y'></td>
+			<td id='p6_y'></td>
+			<td id='p7_y'></td>
+			<td id='p8_y'></td>
 		</tr>
 		<tr>
 			<td><b>All-Red (AR)</b></td>
+			<td id='p1_r'></td>
+			<td id='p2_r'></td>
+			<td id='p3_r'></td>
+			<td id='p4_r'></td>
+			<td id='p5_r'></td>
+			<td id='p6_r'></td>
+			<td id='p7_r'></td>
+			<td id='p8_r'></td>
 		</tr>
 		<tr>
 			<td><b>Flashing Don't Walk (FDW)</b></td>
+			<td id='p1_f'></td>
+			<td id='p2_f'></td>
+			<td id='p3_f'></td>
+			<td id='p4_f'></td>
+			<td id='p5_f'></td>
+			<td id='p6_f'></td>
+			<td id='p7_f'></td>
+			<td id='p8_f'></td>
 		</tr>
 	</table>
 </form>
