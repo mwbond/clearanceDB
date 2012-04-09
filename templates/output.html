@@ -19,15 +19,25 @@ $def with (kwargs)
 				mapTypeId: google.maps.MapTypeId.HYBRID
 			};
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
-			yar_length = drawLine('$kwargs['p1_yar_line']', '#ff0000');
-			fdw_length = drawLine('$kwargs['p1_fdw_line']', '#fff000');
-			updateTable('p1', yar_length, fdw_length, '$kwargs['p1_grade']', '$kwargs['p1_speed']', '$kwargs['p1_mov']');
-			//'#0000ff' blue
-			//'#00ff00' green
-			//'#ff00ff' purple
+			yar_length = drawLine('$kwargs['p1_yar_line']', '#ff0000', 0);
+			fdw_length = drawLine('$kwargs['p1_fdw_line']', '#ff4d4d', 1);
+			yar_length = drawLine('$kwargs['p2_yar_line']', '#008080', 0);
+			fdw_length = drawLine('$kwargs['p2_fdw_line']', '#00f7f7', 1);
+			yar_length = drawLine('$kwargs['p3_yar_line']', '#ffff00', 0);
+			fdw_length = drawLine('$kwargs['p3_fdw_line']', '#ffff99', 1);
+			yar_length = drawLine('$kwargs['p4_yar_line']', '#ff4500', 0);
+			fdw_length = drawLine('$kwargs['p4_fdw_line']', '#99ff00', 1);
+			yar_length = drawLine('$kwargs['p5_yar_line']', '#8f5e99', 0);
+			fdw_length = drawLine('$kwargs['p5_fdw_line']', '#b28db9', 1);
+			yar_length = drawLine('$kwargs['p6_yar_line']', '#008000', 0);
+			fdw_length = drawLine('$kwargs['p6_fdw_line']', '#00f700', 1);
+			yar_length = drawLine('$kwargs['p7_yar_line']', '#0000ff', 0);
+			fdw_length = drawLine('$kwargs['p7_fdw_line']', '#9999ff', 1);
+			yar_length = drawLine('$kwargs['p8_yar_line']', '#8b5a2b', 0);
+			fdw_length = drawLine('$kwargs['p8_fdw_line']', '#c98c52', 1);
 		}
 
-		function drawLine(latlng_txt, color)
+		function drawLine(latlng_txt, color, center)
 		{
 			if(!latlng_txt)
 			{
@@ -41,7 +51,14 @@ $def with (kwargs)
 					strokeColor: color
 			};
 			var line = new google.maps.Polyline(polyOptions);
-			var position = google.maps.geometry.spherical.interpolate(path.getAt(0), path.getAt(1), .5);
+			if(center)
+			{
+				var position = google.maps.geometry.spherical.interpolate(path.getAt(0), path.getAt(1), .5);
+			}
+			else
+			{
+				var position = path.getAt(0);
+			}
 			var length = google.maps.geometry.spherical.computeLength(path) * 3.28;
 			var txt_length = length.toFixed(0).toString() + "\'";
 			var text = new textOverlay(position, txt_length, map);
@@ -75,65 +92,6 @@ $def with (kwargs)
 			this.setMap(map);
 		}
 
-		function updateTable(elem_id, yar_length, fdw_length, grade, speed, mov);
-		{
-			var yellow = calculateYellow(yar_length, speed, grade);
-			var red = calculateRed(yar_length, speed, mov);
-
-		}
-
-		function calculateFDW(length, red)
-		{
-			if(length==0)
-			{
-				return 0;
-			}
-			var pct = length/3.5;
-			return Math.ceil(pct - Math.max(red, 3));
-		}
-
-		function calculateYellow(length, speed, grade)
-		{
-			if(length==0)
-			{
-				return 0;
-			}
-			var yellow = 1 + (0.733*speed)/(10 + (0.32*grade));
-			return yellow;
-		}
-
-		function calculateRed(length, speed)
-		{
-			if(length==0)
-			{
-				return 0;
-			}
-			var red = length/speed;
-			return red;
-		}
-
-		function roundDownToHalf(value)
-		{ 
-			var down = Math.floor(value);
-			var rem = value - down;
-			if(rem >= 0.5)
-			{
-				return down + 0.5;
-			}
-			return down;
-		}
-
-		function roundUpToHalf(value)
-		{ 
-			var up = Math.ceil(value);
-			var rem = up - value;
-			if(rem >= 0.5)
-			{
-				return up - 0.5;
-			}
-			return up;
-		}
-
 		textOverlay.prototype = new google.maps.OverlayView();
 
 		textOverlay.prototype.onAdd = function()
@@ -165,7 +123,16 @@ $def with (kwargs)
 	<a href='http://localhost:8080'>Go Home</a>
 	<p style='margin-bottom:10px;text-align:center;font-size:36px;font-weight:bold'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</p>
 	<div id='map_canvas' style='margin:auto;width:600px;height:600px'></div>
-	<table style='margin:auto;font-size:20px' border='1'>
+	<table style='margin:auto;text-align:center;font-size:20px' border='1'>
+		<col />
+		<col width='50' />
+		<col width='50' />
+		<col width='50' />
+		<col width='50' />
+		<col width='50' />
+		<col width='50' />
+		<col width='50' />
+		<col width='50' />
 		<tr>
 			<td />
 			<td colspan='8'><b>PHASE NUMBER</b></td>
@@ -181,37 +148,37 @@ $def with (kwargs)
 			<td><b>8</b></td>
 		</tr>
 		<tr>
-			<td><b>Yellow (Y)</b></td>
-			<td id='p1_y'></td>
-			<td id='p2_y'></td>
-			<td id='p3_y'></td>
-			<td id='p4_y'></td>
-			<td id='p5_y'></td>
-			<td id='p6_y'></td>
-			<td id='p7_y'></td>
-			<td id='p8_y'></td>
+			<td style='text-align:right'><b>Yellow (Y)</b></td>
+			<td>$kwargs['p1_y']</td>
+			<td>$kwargs['p2_y']</td>
+			<td>$kwargs['p3_y']</td>
+			<td>$kwargs['p4_y']</td>
+			<td>$kwargs['p5_y']</td>
+			<td>$kwargs['p6_y']</td>
+			<td>$kwargs['p7_y']</td>
+			<td>$kwargs['p8_y']</td>
 		</tr>
 		<tr>
-			<td><b>All-Red (AR)</b></td>
-			<td id='p1_r'></td>
-			<td id='p2_r'></td>
-			<td id='p3_r'></td>
-			<td id='p4_r'></td>
-			<td id='p5_r'></td>
-			<td id='p6_r'></td>
-			<td id='p7_r'></td>
-			<td id='p8_r'></td>
+			<td style='text-align:right'><b>All-Red (AR)</b></td>
+			<td>$kwargs['p1_r']</td>
+			<td>$kwargs['p2_r']</td>
+			<td>$kwargs['p3_r']</td>
+			<td>$kwargs['p4_r']</td>
+			<td>$kwargs['p5_r']</td>
+			<td>$kwargs['p6_r']</td>
+			<td>$kwargs['p7_r']</td>
+			<td>$kwargs['p8_r']</td>
 		</tr>
 		<tr>
-			<td><b>Flashing Don't Walk (FDW)</b></td>
-			<td id='p1_f'></td>
-			<td id='p2_f'></td>
-			<td id='p3_f'></td>
-			<td id='p4_f'></td>
-			<td id='p5_f'></td>
-			<td id='p6_f'></td>
-			<td id='p7_f'></td>
-			<td id='p8_f'></td>
+			<td style='text-align:right'><b>Flashing Don't Walk (FDW)</b></td>
+			<td>$kwargs['p1_f']</td>
+			<td>$kwargs['p2_f']</td>
+			<td>$kwargs['p3_f']</td>
+			<td>$kwargs['p4_f']</td>
+			<td>$kwargs['p5_f']</td>
+			<td>$kwargs['p6_f']</td>
+			<td>$kwargs['p7_f']</td>
+			<td>$kwargs['p8_f']</td>
 		</tr>
 	</table>
 </form>

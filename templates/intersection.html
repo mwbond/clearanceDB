@@ -135,14 +135,17 @@ $def with (kwargs)
 			var length = measure.lineLength;
 			if(length == '0')
 			{
-				document.getElementById(elem_id + '_txt').innerHTML = 'N/A';
+				document.getElementById(elem_id + '_txt').innerHTML = '\'';
+				document.getElementById(elem_id + '_txt').value = '';
 				document.getElementById(elem_id + '_line').value = '';
+				document.getElementById(elem_id + '_len').value = '';
 			}
 			else
 			{
 				var latlng1 = measure.mvcLine.getAt(0).toString();
 				var latlng2 = measure.mvcLine.getAt(1).toString();
 				document.getElementById(elem_id + '_txt').innerHTML = length + '\'';
+				document.getElementById(elem_id + '_len').value = length;
 				document.getElementById(elem_id + '_line').value = latlng1 + '+' + latlng2;
 			}
 		}
@@ -160,7 +163,7 @@ $def with (kwargs)
 			measure.mvcMarkers.forEach(function(elem, index){elem.setMap(null);});
 			measure.mvcMarkers.clear();
 			measure.lineLength = '0';
-			document.getElementById('measurement').innerHTML = 'N/A';
+			document.getElementById('measurement').innerHTML = '\'';
 		}
 	</script>
 </head>
@@ -169,6 +172,7 @@ $def with (kwargs)
 		<div id='map_canvas' style='margin:0 auto; width:600px; height:600px; float:left'></div>
 		<div id='form' style='float:left'>
 		<a href='http://localhost:8080'>Go Home</a>
+		<a href='/output?IntID=$kwargs['int_id']'>Goto Output</a>
 		<form name='int_info' method='POST' action='update_intersection'>
 			<table>
 				<tr><td><strong>Int ID:</strong></td><td><input type='text' name='int_id' size='4' value='$kwargs['int_id']' /></td></tr>
@@ -192,19 +196,161 @@ $def with (kwargs)
 					<td><strong>Phase 1</strong></td>
 					<td>
 						<button type='button' onclick="updateForm('p1_yar')">Set YAR (ft)</button>
-						<b id='p1_yar_txt'><script type='text/javascript'>document.write(getLength(createPath('$kwargs['p1_yar_line']')))</script></b>
+						<b id='p1_yar_txt'>$kwargs['p1_yar_len']'</b>
+						<input type='hidden' id='p1_yar_len' name='p1_yar_len' value='$kwargs['p1_yar_len']' />
 						<input type='hidden' id='p1_yar_line' name='p1_yar_line' value='$kwargs['p1_yar_line']' />
 					</td>
 					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p1_fdw')">Set FDW (ft)</button>
-						<b id='p1_fdw_txt'><script type='text/javascript'>document.write(getLength(createPath('$kwargs['p1_fdw_line']')))</script></b>
+						<b id='p1_fdw_txt'>$kwargs['p1_fdw_len']'</b>
+						<input type='hidden' id='p1_fdw_len' name='p1_fdw_len' value='$kwargs['p1_fdw_len']' />
 						<input type='hidden' id='p1_fdw_line' name='p1_fdw_line' value='$kwargs['p1_fdw_line']' />
 					</td>
 					<td><input type='text' name='p1_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p1_dir']' /></td>
 					<td><input type='text' name='p1_road' size='15' placeholder='Road Name' value='$kwargs['p1_road']' /></td>
 					<td><input type='text' name='p1_grade' size='5' placeholder='Grade (%)' value='$kwargs['p1_grade']' /></td>
 					<td><input type='text' name='p1_speed' size='5' placeholder='MPH' value='$kwargs['p1_speed']' /></td>
+				</tr>
+				<tr>
+					<td><strong>Phase 2</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p2_yar')">Set YAR (ft)</button>
+						<b id='p2_yar_txt'>$kwargs['p2_yar_len']'</b>
+						<input type='hidden' id='p2_yar_len' name='p2_yar_len' value='$kwargs['p2_yar_len']' />
+						<input type='hidden' id='p2_yar_line' name='p2_yar_line' value='$kwargs['p2_yar_line']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p2_fdw')">Set FDW (ft)</button>
+						<b id='p2_fdw_txt'>$kwargs['p2_fdw_len']'</b>
+						<input type='hidden' id='p2_fdw_len' name='p2_fdw_len' value='$kwargs['p2_fdw_len']' />
+						<input type='hidden' id='p2_fdw_line' name='p2_fdw_line' value='$kwargs['p2_fdw_line']' />
+					</td>
+					<td><input type='text' name='p2_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p2_dir']' /></td>
+					<td><input type='text' name='p2_road' size='15' placeholder='Road Name' value='$kwargs['p2_road']' /></td>
+					<td><input type='text' name='p2_grade' size='5' placeholder='Grade (%)' value='$kwargs['p2_grade']' /></td>
+					<td><input type='text' name='p2_speed' size='5' placeholder='MPH' value='$kwargs['p2_speed']' /></td>
+				</tr>
+				<tr>
+					<td><strong>Phase 3</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p3_yar')">Set YAR (ft)</button>
+						<b id='p3_yar_txt'>$kwargs['p3_yar_len']'</b>
+						<input type='hidden' id='p3_yar_len' name='p3_yar_len' value='$kwargs['p3_yar_len']' />
+						<input type='hidden' id='p3_yar_line' name='p3_yar_line' value='$kwargs['p3_yar_line']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p3_fdw')">Set FDW (ft)</button>
+						<b id='p3_fdw_txt'>$kwargs['p3_fdw_len']'</b>
+						<input type='hidden' id='p3_fdw_len' name='p3_fdw_len' value='$kwargs['p3_fdw_len']' />
+						<input type='hidden' id='p3_fdw_line' name='p3_fdw_line' value='$kwargs['p3_fdw_line']' />
+					</td>
+					<td><input type='text' name='p3_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p3_dir']' /></td>
+					<td><input type='text' name='p3_road' size='15' placeholder='Road Name' value='$kwargs['p3_road']' /></td>
+					<td><input type='text' name='p3_grade' size='5' placeholder='Grade (%)' value='$kwargs['p3_grade']' /></td>
+					<td><input type='text' name='p3_speed' size='5' placeholder='MPH' value='$kwargs['p3_speed']' /></td>
+				</tr>
+				<tr>
+					<td><strong>Phase 4</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p4_yar')">Set YAR (ft)</button>
+						<b id='p4_yar_txt'>$kwargs['p4_yar_len']'</b>
+						<input type='hidden' id='p4_yar_len' name='p4_yar_len' value='$kwargs['p4_yar_len']' />
+						<input type='hidden' id='p4_yar_line' name='p4_yar_line' value='$kwargs['p4_yar_line']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p4_fdw')">Set FDW (ft)</button>
+						<b id='p4_fdw_txt'>$kwargs['p4_fdw_len']'</b>
+						<input type='hidden' id='p4_fdw_len' name='p4_fdw_len' value='$kwargs['p4_fdw_len']' />
+						<input type='hidden' id='p4_fdw_line' name='p4_fdw_line' value='$kwargs['p4_fdw_line']' />
+					</td>
+					<td><input type='text' name='p4_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p4_dir']' /></td>
+					<td><input type='text' name='p4_road' size='15' placeholder='Road Name' value='$kwargs['p4_road']' /></td>
+					<td><input type='text' name='p4_grade' size='5' placeholder='Grade (%)' value='$kwargs['p4_grade']' /></td>
+					<td><input type='text' name='p4_speed' size='5' placeholder='MPH' value='$kwargs['p4_speed']' /></td>
+				</tr>
+				<tr>
+					<td><strong>Phase 5</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p5_yar')">Set YAR (ft)</button>
+						<b id='p5_yar_txt'>$kwargs['p5_yar_len']'</b>
+						<input type='hidden' id='p5_yar_len' name='p5_yar_len' value='$kwargs['p5_yar_len']' />
+						<input type='hidden' id='p5_yar_line' name='p5_yar_line' value='$kwargs['p5_yar_line']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p5_fdw')">Set FDW (ft)</button>
+						<b id='p5_fdw_txt'>$kwargs['p5_fdw_len']'</b>
+						<input type='hidden' id='p5_fdw_len' name='p5_fdw_len' value='$kwargs['p5_fdw_len']' />
+						<input type='hidden' id='p5_fdw_line' name='p5_fdw_line' value='$kwargs['p5_fdw_line']' />
+					</td>
+					<td><input type='text' name='p5_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p5_dir']' /></td>
+					<td><input type='text' name='p5_road' size='15' placeholder='Road Name' value='$kwargs['p5_road']' /></td>
+					<td><input type='text' name='p5_grade' size='5' placeholder='Grade (%)' value='$kwargs['p5_grade']' /></td>
+					<td><input type='text' name='p5_speed' size='5' placeholder='MPH' value='$kwargs['p5_speed']' /></td>
+				</tr>
+				<tr>
+					<td><strong>Phase 6</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p6_yar')">Set YAR (ft)</button>
+						<b id='p6_yar_txt'>$kwargs['p6_yar_len']'</b>
+						<input type='hidden' id='p6_yar_len' name='p6_yar_len' value='$kwargs['p6_yar_len']' />
+						<input type='hidden' id='p6_yar_line' name='p6_yar_line' value='$kwargs['p6_yar_line']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p6_fdw')">Set FDW (ft)</button>
+						<b id='p6_fdw_txt'>$kwargs['p6_fdw_len']'</b>
+						<input type='hidden' id='p6_fdw_len' name='p6_fdw_len' value='$kwargs['p6_fdw_len']' />
+						<input type='hidden' id='p6_fdw_line' name='p6_fdw_line' value='$kwargs['p6_fdw_line']' />
+					</td>
+					<td><input type='text' name='p6_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p6_dir']' /></td>
+					<td><input type='text' name='p6_road' size='15' placeholder='Road Name' value='$kwargs['p6_road']' /></td>
+					<td><input type='text' name='p6_grade' size='5' placeholder='Grade (%)' value='$kwargs['p6_grade']' /></td>
+					<td><input type='text' name='p6_speed' size='5' placeholder='MPH' value='$kwargs['p6_speed']' /></td>
+				</tr>
+				<tr>
+					<td><strong>Phase 7</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p7_yar')">Set YAR (ft)</button>
+						<b id='p7_yar_txt'>$kwargs['p7_yar_len']'</b>
+						<input type='hidden' id='p7_yar_len' name='p7_yar_len' value='$kwargs['p7_yar_len']' />
+						<input type='hidden' id='p7_yar_line' name='p7_yar_line' value='$kwargs['p7_yar_line']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p7_fdw')">Set FDW (ft)</button>
+						<b id='p7_fdw_txt'>$kwargs['p7_fdw_len']'</b>
+						<input type='hidden' id='p7_fdw_len' name='p7_fdw_len' value='$kwargs['p7_fdw_len']' />
+						<input type='hidden' id='p7_fdw_line' name='p7_fdw_line' value='$kwargs['p7_fdw_line']' />
+					</td>
+					<td><input type='text' name='p7_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p7_dir']' /></td>
+					<td><input type='text' name='p7_road' size='15' placeholder='Road Name' value='$kwargs['p7_road']' /></td>
+					<td><input type='text' name='p7_grade' size='5' placeholder='Grade (%)' value='$kwargs['p7_grade']' /></td>
+					<td><input type='text' name='p7_speed' size='5' placeholder='MPH' value='$kwargs['p7_speed']' /></td>
+				</tr>
+				<tr>
+					<td><strong>Phase 8</strong></td>
+					<td>
+						<button type='button' onclick="updateForm('p8_yar')">Set YAR (ft)</button>
+						<b id='p8_yar_txt'>$kwargs['p8_yar_len']'</b>
+						<input type='hidden' id='p8_yar_len' name='p8_yar_len' value='$kwargs['p8_yar_len']' />
+						<input type='hidden' id='p8_yar_line' name='p8_yar_line' value='$kwargs['p8_yar_line']' />
+					</td>
+					<td>|</td>
+					<td>
+						<button type='button' onclick="updateForm('p8_fdw')">Set FDW (ft)</button>
+						<b id='p8_fdw_txt'>$kwargs['p8_fdw_len']'</b>
+						<input type='hidden' id='p8_fdw_len' name='p8_fdw_len' value='$kwargs['p8_fdw_len']' />
+						<input type='hidden' id='p8_fdw_line' name='p8_fdw_line' value='$kwargs['p8_fdw_line']' />
+					</td>
+					<td><input type='text' name='p8_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p8_dir']' /></td>
+					<td><input type='text' name='p8_road' size='15' placeholder='Road Name' value='$kwargs['p8_road']' /></td>
+					<td><input type='text' name='p8_grade' size='5' placeholder='Grade (%)' value='$kwargs['p8_grade']' /></td>
+					<td><input type='text' name='p8_speed' size='5' placeholder='MPH' value='$kwargs['p8_speed']' /></td>
 				</tr>
 			</table>
 			<input type='submit' value='Update Phasing Information' />
