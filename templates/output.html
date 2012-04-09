@@ -79,7 +79,10 @@ $def with (kwargs)
 		{
 			var yellow = calculateYellow(yar_length, speed, grade);
 			var red = calculateRed(yar_length, speed, mov);
-
+			var fdw = calculateFDW(fdw_length, red);
+			document.getElementById(elem_id + '_y').innerHTML = yellow;
+			document.getElementById(elem_id + '_r').innerHTML = red;
+			document.getElementById(elem_id + '_f').innerHTML = fdw;
 		}
 
 		function calculateFDW(length, red)
@@ -99,16 +102,32 @@ $def with (kwargs)
 				return 0;
 			}
 			var yellow = 1 + (0.733*speed)/(10 + (0.32*grade));
+			yellow = Math.max(yellow, 4.0);
+			yellow = Math.min(yellow, 6.0);
+			yellow = roundUpToHalf(yelow);
 			return yellow;
 		}
 
-		function calculateRed(length, speed)
+		function calculateRed(length, speed, mov)
 		{
 			if(length==0)
 			{
 				return 0;
 			}
 			var red = length/speed;
+			if(mov=='Turn')
+			{
+				red = max(red, 0.5);
+			}
+			else
+			{
+				red = max(red, 1.0);
+			}
+			var rounded = roundDownToHalf(red);
+			if((red-rounded)<=0.1)
+			{
+				return rounded;
+			}
 			return red;
 		}
 

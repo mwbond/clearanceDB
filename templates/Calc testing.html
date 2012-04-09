@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Sabra-Wang's Clearance Interval Database</title>
+	<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=no' />
+	<meta charset='UTF-8' />
+	<script type='text/javascript'>
+		var text = '';
+		for(var length=0; length<150; length++)
+		{
+			text = text + updateTable('pX', length, length, 0.0, 20.45, 'Through');
+		}
+		//document.getElementById('test_table').innerHTML(text);
+		document.write(text);
+
+		function updateTable(elem_id, yar_length, fdw_length, grade, speed, mov)
+		{
+			var yellow = calculateYellow(yar_length, speed, grade);
+			yellow = Math.max(yellow, 4.0);
+			yellow = Math.min(yellow, 6.0);
+			yellow = roundUpToHalf(yellow);
+			var red = calculateRed(yar_length, speed, mov);
+			if(mov=='Turn')
+			{
+				red = Math.max(red, 0.5);
+			}
+			else
+			{
+				red = Math.max(red, 1.0);
+			}
+			var rounded = roundDownToHalf(red);
+			if((red-rounded)<=0.1)
+			{
+				return rounded;
+			}
+			var fdw = calculateFDW(fdw_length, red);
+			//return '<tr><td>' + yellow + '</td><td>' + red + '</td><td>' + fdw + '</td></tr>';
+			return yellow + ' ' + red + ' ' + fdw + ' | ';
+		}
+
+		function calculateFDW(length, red)
+		{
+			if(length==0)
+			{
+				return 0;
+			}
+			var pct = length/3.5;
+			return Math.ceil(pct - Math.max(red, 3));
+		}
+
+		function calculateYellow(length, speed, grade)
+		{
+			if(length==0)
+			{
+				return 0;
+			}
+			var yellow = 1 + (0.733*speed)/(10 + (0.32*grade));
+			return yellow;
+		}
+
+		function calculateRed(length, speed, mov)
+		{
+			if(length==0)
+			{
+				return 0;
+			}
+			var red = length/speed;
+			return red;
+		}
+
+		function roundDownToHalf(value)
+		{ 
+			var down = Math.floor(value);
+			var rem = value - down;
+			if(rem >= 0.5)
+			{
+				return down + 0.5;
+			}
+			return down;
+		}
+
+		function roundUpToHalf(value)
+		{ 
+			var up = Math.ceil(value);
+			var rem = up - value;
+			if(rem >= 0.5)
+			{
+				return up - 0.5;
+			}
+			return up;
+		}
+	</script>
+</head>
+<body>
+	<table id='test_table'>
+	</table>
+</body>
+</html>
