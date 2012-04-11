@@ -192,7 +192,7 @@ $def with (kwargs)
 			<input type='hidden' id='int_id' name='int_id' value='$kwargs['int_id']' />
 			<table>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
-				<tr><td /><td /><td /><td /><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td></tr>
+				<tr><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td></tr>
 				<tr>
 					<td><strong>Phase 1</strong></td>
 					<td>
@@ -201,12 +201,18 @@ $def with (kwargs)
 						<input type='hidden' id='p1_yar_len' name='p1_yar_len' value='$kwargs['p1_yar_len']' />
 						<input type='hidden' id='p1_yar_line' name='p1_yar_line' value='$kwargs['p1_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p1_fdw')">Set FDW (ft)</button>
 						<b id='p1_fdw_txt'>$kwargs['p1_fdw_len']'</b>
 						<input type='hidden' id='p1_fdw_len' name='p1_fdw_len' value='$kwargs['p1_fdw_len']' />
 						<input type='hidden' id='p1_fdw_line' name='p1_fdw_line' value='$kwargs['p1_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p1_mov']=='':
+							| <input type=checkbox name='p1_mov' />
+						<input type='hidden' name='p1_mov' value='' />
+						$if kwargs['p1_mov']!='':
+							| <input type=checkbox name='p1_mov' checked />
 					</td>
 					<td><input type='text' name='p1_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p1_dir']' /></td>
 					<td><input type='text' name='p1_road' size='15' placeholder='Road Name' value='$kwargs['p1_road']' /></td>
@@ -221,12 +227,18 @@ $def with (kwargs)
 						<input type='hidden' id='p2_yar_len' name='p2_yar_len' value='$kwargs['p2_yar_len']' />
 						<input type='hidden' id='p2_yar_line' name='p2_yar_line' value='$kwargs['p2_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p2_fdw')">Set FDW (ft)</button>
 						<b id='p2_fdw_txt'>$kwargs['p2_fdw_len']'</b>
 						<input type='hidden' id='p2_fdw_len' name='p2_fdw_len' value='$kwargs['p2_fdw_len']' />
 						<input type='hidden' id='p2_fdw_line' name='p2_fdw_line' value='$kwargs['p2_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p2_mov']=='':
+							| <input type=checkbox name='p2_mov' />
+						<input type='hidden' name='p2_mov' value='' />
+						$if kwargs['p2_mov']!='':
+							| <input type=checkbox name='p2_mov' checked />
 					</td>
 					<td><input type='text' name='p2_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p2_dir']' /></td>
 					<td><input type='text' name='p2_road' size='15' placeholder='Road Name' value='$kwargs['p2_road']' /></td>
@@ -241,12 +253,18 @@ $def with (kwargs)
 						<input type='hidden' id='p3_yar_len' name='p3_yar_len' value='$kwargs['p3_yar_len']' />
 						<input type='hidden' id='p3_yar_line' name='p3_yar_line' value='$kwargs['p3_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p3_fdw')">Set FDW (ft)</button>
 						<b id='p3_fdw_txt'>$kwargs['p3_fdw_len']'</b>
 						<input type='hidden' id='p3_fdw_len' name='p3_fdw_len' value='$kwargs['p3_fdw_len']' />
 						<input type='hidden' id='p3_fdw_line' name='p3_fdw_line' value='$kwargs['p3_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p3_mov']=='':
+							| <input type=checkbox name='p3_mov' />
+						<input type='hidden' name='p3_mov' value='' />
+						$if kwargs['p3_mov']!='':
+							| <input type=checkbox name='p3_mov' checked />
 					</td>
 					<td><input type='text' name='p3_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p3_dir']' /></td>
 					<td><input type='text' name='p3_road' size='15' placeholder='Road Name' value='$kwargs['p3_road']' /></td>
@@ -261,12 +279,18 @@ $def with (kwargs)
 						<input type='hidden' id='p4_yar_len' name='p4_yar_len' value='$kwargs['p4_yar_len']' />
 						<input type='hidden' id='p4_yar_line' name='p4_yar_line' value='$kwargs['p4_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p4_fdw')">Set FDW (ft)</button>
 						<b id='p4_fdw_txt'>$kwargs['p4_fdw_len']'</b>
 						<input type='hidden' id='p4_fdw_len' name='p4_fdw_len' value='$kwargs['p4_fdw_len']' />
 						<input type='hidden' id='p4_fdw_line' name='p4_fdw_line' value='$kwargs['p4_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p4_mov']=='':
+							| <input type=checkbox name='p4_mov' />
+						<input type='hidden' name='p4_mov' value='' />
+						$if kwargs['p4_mov']!='':
+							| <input type=checkbox name='p4_mov' checked />
 					</td>
 					<td><input type='text' name='p4_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p4_dir']' /></td>
 					<td><input type='text' name='p4_road' size='15' placeholder='Road Name' value='$kwargs['p4_road']' /></td>
@@ -281,12 +305,18 @@ $def with (kwargs)
 						<input type='hidden' id='p5_yar_len' name='p5_yar_len' value='$kwargs['p5_yar_len']' />
 						<input type='hidden' id='p5_yar_line' name='p5_yar_line' value='$kwargs['p5_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p5_fdw')">Set FDW (ft)</button>
 						<b id='p5_fdw_txt'>$kwargs['p5_fdw_len']'</b>
 						<input type='hidden' id='p5_fdw_len' name='p5_fdw_len' value='$kwargs['p5_fdw_len']' />
 						<input type='hidden' id='p5_fdw_line' name='p5_fdw_line' value='$kwargs['p5_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p5_mov']=='':
+							| <input type=checkbox name='p5_mov' />
+						<input type='hidden' name='p5_mov' value='' />
+						$if kwargs['p5_mov']!='':
+							| <input type=checkbox name='p5_mov' checked />
 					</td>
 					<td><input type='text' name='p5_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p5_dir']' /></td>
 					<td><input type='text' name='p5_road' size='15' placeholder='Road Name' value='$kwargs['p5_road']' /></td>
@@ -301,12 +331,18 @@ $def with (kwargs)
 						<input type='hidden' id='p6_yar_len' name='p6_yar_len' value='$kwargs['p6_yar_len']' />
 						<input type='hidden' id='p6_yar_line' name='p6_yar_line' value='$kwargs['p6_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p6_fdw')">Set FDW (ft)</button>
 						<b id='p6_fdw_txt'>$kwargs['p6_fdw_len']'</b>
 						<input type='hidden' id='p6_fdw_len' name='p6_fdw_len' value='$kwargs['p6_fdw_len']' />
 						<input type='hidden' id='p6_fdw_line' name='p6_fdw_line' value='$kwargs['p6_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p6_mov']=='':
+							| <input type=checkbox name='p6_mov' />
+						<input type='hidden' name='p6_mov' value='' />
+						$if kwargs['p6_mov']!='':
+							| <input type=checkbox name='p6_mov' checked />
 					</td>
 					<td><input type='text' name='p6_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p6_dir']' /></td>
 					<td><input type='text' name='p6_road' size='15' placeholder='Road Name' value='$kwargs['p6_road']' /></td>
@@ -321,12 +357,18 @@ $def with (kwargs)
 						<input type='hidden' id='p7_yar_len' name='p7_yar_len' value='$kwargs['p7_yar_len']' />
 						<input type='hidden' id='p7_yar_line' name='p7_yar_line' value='$kwargs['p7_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p7_fdw')">Set FDW (ft)</button>
 						<b id='p7_fdw_txt'>$kwargs['p7_fdw_len']'</b>
 						<input type='hidden' id='p7_fdw_len' name='p7_fdw_len' value='$kwargs['p7_fdw_len']' />
 						<input type='hidden' id='p7_fdw_line' name='p7_fdw_line' value='$kwargs['p7_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p7_mov']=='':
+							| <input type=checkbox name='p7_mov' />
+						<input type='hidden' name='p7_mov' value='' />
+						$if kwargs['p7_mov']!='':
+							| <input type=checkbox name='p7_mov' checked />
 					</td>
 					<td><input type='text' name='p7_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p7_dir']' /></td>
 					<td><input type='text' name='p7_road' size='15' placeholder='Road Name' value='$kwargs['p7_road']' /></td>
@@ -341,12 +383,18 @@ $def with (kwargs)
 						<input type='hidden' id='p8_yar_len' name='p8_yar_len' value='$kwargs['p8_yar_len']' />
 						<input type='hidden' id='p8_yar_line' name='p8_yar_line' value='$kwargs['p8_yar_line']' />
 					</td>
-					<td>|</td>
 					<td>
 						<button type='button' onclick="updateForm('p8_fdw')">Set FDW (ft)</button>
 						<b id='p8_fdw_txt'>$kwargs['p8_fdw_len']'</b>
 						<input type='hidden' id='p8_fdw_len' name='p8_fdw_len' value='$kwargs['p8_fdw_len']' />
 						<input type='hidden' id='p8_fdw_line' name='p8_fdw_line' value='$kwargs['p8_fdw_line']' />
+					</td>
+					<td>
+						$if kwargs['p8_mov']=='':
+							| <input type=checkbox name='p8_mov' />
+						<input type='hidden' name='p8_mov' value='' />
+						$if kwargs['p8_mov']!='':
+							| <input type=checkbox name='p8_mov' checked />
 					</td>
 					<td><input type='text' name='p8_dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['p8_dir']' /></td>
 					<td><input type='text' name='p8_road' size='15' placeholder='Road Name' value='$kwargs['p8_road']' /></td>

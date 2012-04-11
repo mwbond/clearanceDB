@@ -60,27 +60,40 @@ class intersection:
 		return render.intersection(kwargs)
 
 class update_intersection:
-	def calcYAR(self, length, speed, grade):
+	def calcYAR(self, length, speed, grade, turn):
+		if turn:
+			min_r = 0.5
+			speed = 20
+		else:
+			min_r = 1
 		if (length==0) or (speed==0):
 			return '-', '-'
+
 		yellow = 1 + (0.733 * speed)/(10 + (0.32 * grade))
-		yellow = max(4.0, ceil(2 * yellow)/2)
+		yellow_r = ceil(2 * yellow)/2
+		yellow = round(yellow, 1)
 		red = length / speed
-		if ((ceil(2 * red)/2) - red) > 0.4:
-			red = ceil(2 * red)/2 - 0.5
-		else:
-			red = ceil(2 * red)/2
-		return str(yellow), str(red)
-	def calcFDW(self, length, red):
+		red_r = ceil(2 * red)/2
+		red = round(red, 1)
+		diff_yellow = yellow - yellow_r
+		diff_red = red - red_r
+
+		yellow_r = min(yellow_r, 6)
+		yellow_r = max(yellow_r, 4)
+		red_r = min(red_r, 3)
+		red_r = max(red_r, min_r)
+		if(diff_yellow + diff_red) < 0:
+			yellow_r = yellow_r + 0.5
+		return str(yellow_r / 1.0), str(red_r / 1.0)
+	def calcFDW(self, length, red, yellow):
 		if length==0:
 			return '-'
 		if red=='-':
 			red = 0
-		pct = length/3.5
-		fdw = pct - max(float(red), 3.0)
-		fdw = pct - max(float(red), 3.0)
+		pct = length / 3.5
+		fdw = pct - (float(yellow) + float(red) - 3)
 		fdw = max(4.0, fdw)
-		fdw = ceil(2 * fdw)/2
+		fdw = ceil(fdw)
 		return str(fdw)
 	def POST(self):
 		form = dict(web.input())
@@ -98,17 +111,19 @@ class update_intersection:
 					fdw_length = 0
 				speed = form['p' + phase + '_speed']
 				if speed:
-					speed = (float(speed) + 5)
-					speed = speed * 5280 / 3600
+					speed = float(speed)
+					#speed = (float(speed) + 5)
+					#speed = speed * 5280 / 3600
 				else:
 					speed = 0
 				grade = form['p' + phase + '_grade']
+				mov = form['p' + phase + '_mov']
 				if grade:
 					grade = int(float(grade))
 				else:
 					grade = 0
-				yellow, red = self.calcYAR(yar_length, speed, grade)
-				fdw = self.calcFDW(fdw_length, red)
+				yellow, red = self.calcYAR(yar_length, speed, grade, mov)
+				fdw = self.calcFDW(fdw_length, red, yellow)
 				form['p' + phase + '_y'] = yellow
 				form['p' + phase + '_r'] = red
 				form['p' + phase + '_f'] = fdw
