@@ -79,9 +79,7 @@ $def with (kwargs)
 			var latlng = event.latLng;
 			var index = measure.mvcLine.getLength() - 1;
 			if(index > 0)
-			{
 				measureReset()
-			}
 
 			var marker = new google.maps.Marker({
 				map: map,
@@ -108,9 +106,7 @@ $def with (kwargs)
 			google.maps.event.addListener(marker, "dragend", function()
 			{
 				if (measure.mvcLine.getLength() > 1)
-				{
 					updateMeasurement();
-				}
 			});
 
 			if(index > 0)
@@ -130,23 +126,25 @@ $def with (kwargs)
 			}
 		}
 
-		function updateForm(elem_id)
+		function updateForm(elem_id, index, p)
 		{
 			var length = measure.lineLength;
+			var txt = document.getElementById(p + elem_id);
+			var line = document.getElementById(elem_id + '_line');
+			var len = document.getElementById(elem_id + '_len');
 			if(length == '0')
 			{
-				document.getElementById(elem_id + '_txt').innerHTML = '\'';
-				document.getElementById(elem_id + '_txt').value = '';
-				document.getElementById(elem_id + '_line').value = '';
-				document.getElementById(elem_id + '_len').value = '';
+				txt.innerHTML = '\'';
+				line.value = '';
+				len.value = '';
 			}
 			else
 			{
 				var latlng1 = measure.mvcLine.getAt(0).toString();
 				var latlng2 = measure.mvcLine.getAt(1).toString();
-				document.getElementById(elem_id + '_txt').innerHTML = length + '\'';
-				document.getElementById(elem_id + '_len').value = length;
-				document.getElementById(elem_id + '_line').value = latlng1 + '+' + latlng2;
+				txt.innerHTML = length + '\'';
+				line.value = editList(line.value, index, latlng1 + '+' + latlng2);
+				len.value = editList(len.value, index, length);
 			}
 		}
 
@@ -166,34 +164,99 @@ $def with (kwargs)
 			document.getElementById('measurement').innerHTML = '\'';
 		}
 
-		function updateSpeed(elem_id)
+		function updateMov(index, p)
 		{
-			var checkbox = document.getElementById(elem_id + 'mov');
-			var speed = document.getElementById(elem_id + 'speed');
-			if(checkbox.value)
-			{
-				checkbox.value = '';
-			}
+			var mov = document.getElementById('mov');
+			var speed = document.getElementById(p + 'speed');
+			if(mov.value.split(';')[index])
+				mov.value = editList(mov.value, index, '');
 			else
 			{
-				speed.value = 20;
-				checkbox.value = 'on';
+				mov.value = editList(mov.value, index, 'on');
+				if(speed.value)
+					speed.value = 20;
 			}
 		}
 
-		function disableBox(elem_id)
+		function disableBox(index, p)
 		{
-			var box = document.getElementById(elem_id);
+			var lag = document.getElementById('lag');
+			var box = document.getElementById(p + 'lag');
 			if(box.disabled)
-			{
 				box.disabled = '';
-			}
 			else
 			{
 				box.disabled = 'disabled';
 				box.value = '';
+				lag.value = editList(lag.value, index, '');
 			}
 		}
+
+		function editList(string, index, value)
+		{
+			var split = string.split(';');
+			split[index] = value;
+			return split.join(';');
+		}
+
+		function validate(elem_id, value, p)
+		{
+			if(value.indexOf(';') >= 0)
+				return false;
+			if(value=='')
+				return true;
+
+			if(elem_id=='grade')
+			{
+				num = parseFloat(value);
+				if(num > -100 && num < 100)
+					return true;
+			}
+
+			else if(elem_id=='speed')
+			{
+				num = parseFloat(value);
+				if(num >= 0 && num < 200 && (value % 1)==0)
+				{
+					num = parseInt(num);
+					if(num.toString()==value)
+						return true;
+				}
+			}
+
+			else if(elem_id=='lag')
+			{
+				if(p!=value)
+				{
+					num = parseFloat(value);
+					if((num % 1)==0)
+					{
+						num = parseInt(num);
+						if(num >= 1 && num <= 8 && num.toString()==value)
+							return true;
+					}
+				}
+			}
+
+			else
+				return true;
+
+			return false;
+		}
+
+		function updateTextBox(elem_id, index, p)
+		{
+			var textbox = document.getElementById(p + elem_id);
+			var list = document.getElementById(elem_id);
+			if(validate(elem_id, textbox.value, p))
+				list.value = editList(list.value, index, textbox.value);
+			else
+			{
+				textbox.value = list.value.split(';')[index];
+				alert('Invalid Input');
+			}
+		}
+
 	</script>
 </head>
 <body onload='initialize()'>
@@ -207,79 +270,69 @@ $def with (kwargs)
 				<tr><td><strong>Int ID:</strong></td><td><input type='text' name='int_id' size='4' value='$kwargs['int_id']' /></td></tr>
 				<tr><td><strong>Major Road:</strong></td><td><input type='text' name='major' size='40' value='$kwargs['major']' /></td></tr>
 				<tr><td><strong>Intersecting Road:</strong></td><td><input type='text' name='minor' size='40' value='$kwargs['minor']' /></td></tr>
-				<tr><td><strong>Latitude:</strong></td><td><b id='map_lat_txt' name='map_lat_txt'>$kwargs['map_lat']</b></td></tr>
+				<tr><td><strong>Latitude:</strong></td><td><b id='map_lat_txt'>$kwargs['map_lat']</b></td></tr>
 					<input type='hidden' id='map_lat' name='map_lat' value='$kwargs['map_lat']' />
-				<tr><td><strong>Longitude:</strong></td><td><b id='map_lng_txt' name='map_lng_txt'>$kwargs['map_lng']</b></td></tr>
+				<tr><td><strong>Longitude:</strong></td><td><b id='map_lng_txt'>$kwargs['map_lng']</b></td></tr>
 					<input type='hidden' id='map_lng' name='map_lng' value='$kwargs['map_lng']' />
-				<tr><td><strong>Zoom:</strong></td><td><b id='map_zoom_txt' name='map_zoom_txt'>$kwargs['map_zoom']</b></td></tr>
+				<tr><td><strong>Zoom:</strong></td><td><b id='map_zoom_txt'>$kwargs['map_zoom']</b></td></tr>
 					<input type='hidden' id='map_zoom' name='map_zoom' value='$kwargs['map_zoom']' />
 			</table>
 			<input type='submit' value='Update Intersection Information' />
 		</form>
 		<br />
 		<form name='phase_info' method='POST' action='update_intersection'>
-			<input type='hidden' id='int_id' name='int_id' value='$kwargs['int_id']' />
+			<input type='hidden' id='int_id'	name='int_id'	value='$kwargs['int_id']' />
+			<input type='hidden' id='yar_line'	name='yar_line' value='$kwargs['yar_line']' />
+			<input type='hidden' id='fdw_line'	name='fdw_line' value='$kwargs['fdw_line']' />
+			<input type='hidden' id='mov'		name='mov'		value='$kwargs['mov']' />
+			<input type='hidden' id='road'		name='road'		value='$kwargs['road']' />
+			<input type='hidden' id='grade'		name='grade'	value='$kwargs['grade']' />
+			<input type='hidden' id='speed'		name='speed'	value='$kwargs['speed']' />
+			<input type='hidden' id='dir'		name='dir'		value='$kwargs['dir']' />
+			<input type='hidden' id='yar_len'	name='yar_len'	value='$kwargs['yar_len']' />
+			<input type='hidden' id='fdw_len'	name='fdw_len'	value='$kwargs['fdw_len']' />
+			<input type='hidden' id='yellow'	name='yellow'	value='$kwargs['yellow']' />
+			<input type='hidden' id='red'		name='red'		value='$kwargs['red']' />
+			<input type='hidden' id='fdw'		name='fdw'		value='$kwargs['fdw']' />
+			<input type='hidden' id='lag'		name='lag'		value='$kwargs['lag']' />
 			<table>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
 				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td><td><b>Lag</b></td><td><b>Adj Phase</b></td></tr>
-			$for p in ['1', '2', '3', '4', '5', '6', '7', '8']:
-				$ blank = 'p' + p + '_'
-				$ yar = blank + 'yar'
-				$ yar_txt = yar + '_txt'
-				$ yar_len = yar + '_len'
-				$ yar_line = yar + '_line'
-				$ fdw = blank + 'fdw'
-				$ fdw_txt = fdw + '_txt'
-				$ fdw_len = fdw + '_len'
-				$ fdw_line = fdw + '_line'
-				$ mov = blank + 'mov'
-				$ dir = blank + 'dir'
-				$ road = blank + 'road'
-				$ grade = blank + 'grade'
-				$ speed = blank + 'speed'
-				$ lag = blank + 'lag'
-				$ val_yar_len = kwargs[yar_len]
-				$ val_yar_line = kwargs[yar_line]
-				$ val_fdw_len = kwargs[fdw_len]
-				$ val_fdw_line = kwargs[fdw_line]
-				$ val_mov = kwargs[mov]
-				$ val_dir = kwargs[dir]
-				$ val_road = kwargs[road]
-				$ val_grade = kwargs[grade]
-				$ val_speed = kwargs[speed]
-				$ val_lag = kwargs[lag]
+			$for index, p in [[0, '1'], [1, '2'], [2, '3'], [3, '4'], [4, '5'], [5, '6'], [6, '7'], [7, '8']]:
+				$ yar = p + 'yar'
+				$ fdw = p + 'fdw'
+				$ dir = p + 'dir'
+				$ road = p + 'road'
+				$ grade = p + 'grade'
+				$ speed = p + 'speed'
+				$ lag = p + 'lag'
+				<tr>
 				<tr>
 					<td><strong>Phase $p</strong></td>
 					<td>
-						<button type='button' onclick="updateForm('$yar')">Set YAR (ft)</button>
-						<b id='$yar_txt'>$val_yar_len'</b>
-						<input type='hidden' id='$yar_len' name='$yar_len' value='$val_yar_len' />
-						<input type='hidden' id='$yar_line' name='$yar_line' value='$val_yar_line' />
+						<button type='button' onclick="updateForm('yar', $index, '$p')">Set YAR (ft)</button>
+						<b id='$yar'>$kwargs['yar_len'].split(';')[index]'</b>
 					</td>
 					<td>
-						<button type='button' onclick="updateForm('$fdw')">Set FDW (ft)</button>
-						<b id='$fdw_txt'>$val_fdw_len'</b>
-						<input type='hidden' id='$fdw_len' name='$fdw_len' value='$val_fdw_len' />
-						<input type='hidden' id='$fdw_line' name='$fdw_line' value='$val_fdw_line' />
+						<button type='button' onclick="updateForm('fdw', $index, '$p')">Set FDW (ft)</button>
+						<b id='$fdw'>$kwargs['fdw_len'].split(';')[index]'</b>
 					</td>
 					<td>
-						$if val_mov=='':
-							| <input type=checkbox onClick="updateSpeed('$blank')" />
-							<input type='hidden' id='$mov' name='$mov' value='' />
-						$if val_mov!='':
-							| <input type=checkbox onClick="updateSpeed('$blank')" checked />
-							<input type='hidden' id='$mov' name='$mov' value='on' />
+						$if kwargs['mov'].split(';')[index]=='':
+							| <input type=checkbox onClick="updateMov($index, '$p')" />
+						$else:
+							| <input type=checkbox onClick="updateMov($index, '$p')" checked />
 					</td>
-					<td><input type='text' name='$dir' size='1' placeholder='Dir' maxlength=3 value='$val_dir' /></td>
-					<td><input type='text' name='$road' size='15' placeholder='Road Name' value='$val_road' /></td>
-					<td><input type='text' name='$grade' size='5' placeholder='Grade (%)' value='$val_grade' /></td>
-					<td><input type='text' name='$speed' id='$speed' size='5' placeholder='MPH' value='$val_speed' /></td>
-				$if val_lag=='':
-					<td><input type=checkbox onClick="disableBox('$lag')" /></td>
-					<td><input type='text' name='$lag' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$val_lag' disabled='disabled' /></td>
-				$if val_lag!='':
-					<td><input type=checkbox onClick="disableBox('$lag')" checked /></td>
-					<td><input type='text' name='$lag' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$val_lag' /></td>
+					<td><input type='text' id='$dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['dir'].split(';')[index]' onBlur="updateTextBox('dir', $index, '$p')" /></td>
+					<td><input type='text' id='$road' size='15' placeholder='Road Name' value='$kwargs['road'].split(';')[index]' onBlur="updateTextBox('road', $index, '$p')" /></td>
+					<td><input type='text' id='$grade' size='5' placeholder='Grade (%)' value='$kwargs['grade'].split(';')[index]' onBlur="updateTextBox('grade', $index, '$p')" /></td>
+					<td><input type='text' id='$speed' size='5' id='$speed' placeholder='MPH' value='$kwargs['speed'].split(';')[index]' onBlur="updateTextBox('speed', $index, '$p')" /></td>
+				$if kwargs['lag'].split(';')[index]=='':
+					<td><input type=checkbox onClick="disableBox($index, '$p')" /></td>
+					<td><input type='text' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$kwargs['lag'].split(';')[index]' disabled='disabled' onBlur="updateTextBox('lag', $index, '$p')" /></td>
+				$else:
+					<td><input type=checkbox onClick="disableBox($index, '$p')" checked /></td>
+					<td><input type='text' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$kwargs['lag'].split(';')[index]' onBlur="updateTextBox('lag', $index, '$p')" /></td>
 				</tr>
 			</table>
 			<input type='submit' value='Update Phasing Information' />

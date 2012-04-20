@@ -1,5 +1,4 @@
 $def with (kwargs)
-$ phases = ['1', '2', '3', '4', '5', '6', '7', '8']
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -20,22 +19,22 @@ $ phases = ['1', '2', '3', '4', '5', '6', '7', '8']
 				mapTypeId: google.maps.MapTypeId.HYBRID
 			};
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
-			yar_length = drawLine('$kwargs['p1_yar_line']', '#ff0000', 0);
-			fdw_length = drawLine('$kwargs['p1_fdw_line']', '#ff4d4d', 1);
-			yar_length = drawLine('$kwargs['p2_yar_line']', '#008080', 0);
-			fdw_length = drawLine('$kwargs['p2_fdw_line']', '#00f7f7', 1);
-			yar_length = drawLine('$kwargs['p3_yar_line']', '#ffff00', 0);
-			fdw_length = drawLine('$kwargs['p3_fdw_line']', '#ffff99', 1);
-			yar_length = drawLine('$kwargs['p4_yar_line']', '#ff4500', 0);
-			fdw_length = drawLine('$kwargs['p4_fdw_line']', '#99ff00', 1);
-			yar_length = drawLine('$kwargs['p5_yar_line']', '#8f5e99', 0);
-			fdw_length = drawLine('$kwargs['p5_fdw_line']', '#b28db9', 1);
-			yar_length = drawLine('$kwargs['p6_yar_line']', '#008000', 0);
-			fdw_length = drawLine('$kwargs['p6_fdw_line']', '#00f700', 1);
-			yar_length = drawLine('$kwargs['p7_yar_line']', '#0000ff', 0);
-			fdw_length = drawLine('$kwargs['p7_fdw_line']', '#9999ff', 1);
-			yar_length = drawLine('$kwargs['p8_yar_line']', '#8b5a2b', 0);
-			fdw_length = drawLine('$kwargs['p8_fdw_line']', '#c98c52', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[0]', '#ff0000', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[0]', '#ff4d4d', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[1]', '#008080', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[1]', '#00f7f7', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[2]', '#ffff00', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[2]', '#ffff99', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[3]', '#ff4500', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[3]', '#99ff00', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[4]', '#8f5e99', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[4]', '#b28db9', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[5]', '#008000', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[5]', '#00f700', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[6]', '#0000ff', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[6]', '#9999ff', 1);
+			yar_length = drawLine('$kwargs['yar_line'].split(';')[7]', '#8b5a2b', 0);
+			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[7]', '#c98c52', 1);
 		}
 
 		function drawLine(latlng_txt, color, center)
@@ -127,11 +126,12 @@ $ phases = ['1', '2', '3', '4', '5', '6', '7', '8']
 		<b style='font-size:36px'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</b>
 		<div id='map_canvas' style='margin:auto;width:600px;height:600px'></div>
 		<table style='margin:auto;font-size:20px'>
-			$for p in phases:
-				$ dir = kwargs['p' + p + '_dir']
-				$ road = kwargs['p' + p + '_road']
+			$for index in range(8):
+				$ dir = kwargs['dir'].split(';')[index]
+				$ road = kwargs['road'].split(';')[index]
 				<tr>
-					<td>Phase $p:</td>
+					$ phase = index + 1
+					<td>Phase $phase:</td>
 				$if dir and road:
 					<td style='text-align:left'>$dir on $road</td>
 				$elif dir:
@@ -142,33 +142,33 @@ $ phases = ['1', '2', '3', '4', '5', '6', '7', '8']
 		</table>
 		<table style='margin:auto;font-size:20px' border='1'>
 			<col />
-			$for p in phases:
+			$for index in range(8):
 				<col width='50' />
 			<tr>
 				<td />
-				$ length = len(phases)
-				<td colspan='$length'><b>PHASE NUMBER</b></td>
+				<td colspan='8'><b>PHASE NUMBER</b></td>
 			<tr>
 				<td />
-				$for p in phases:
-					<td><b>$p</b></td>
+				$for index in range(8):
+					$ phase = index + 1
+					<td><b>$phase</b></td>
 			</tr>
 			<tr>
 				<td style='text-align:right'><b>Yellow (Y)</b></td>
-				$for p in phases:
-					$ yellow = kwargs['p' + p + '_y']
+				$for index in range(8):
+					$ yellow = kwargs['yellow'].split(';')[index]
 					<td>$yellow</td>
 			</tr>
 			<tr>
 				<td style='text-align:right'><b>All-Red (AR)</b></td>
-				$for p in phases:
-					$ red = kwargs['p' + p + '_r']
+				$for index in range(8):
+					$ red = kwargs['red'].split(';')[index]
 					<td>$red</td>
 			</tr>
 			<tr>
 				<td style='text-align:right'><b>Flashing Don't Walk (FDW)</b></td>
-				$for p in phases:
-					$ fdw = kwargs['p' + p + '_f']
+				$for index in range(8):
+					$ fdw = kwargs['fdw'].split(';')[index]
 					<td>$fdw</td>
 			</tr>
 		</table>

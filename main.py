@@ -60,15 +60,19 @@ class intersection:
 		return render.intersection(kwargs)
 
 class update_intersection:
+	def editList(self, string, index, value):
+		split = string.split(';')
+		split[index] = value
+		return ';'.join(split)
 	def calcYAR(self, length, speed, grade, turn):
+		if (length==0) or (speed==0):
+			return '-', '-'
 		if turn:
 			min_r = 0.5
 			speed = 20
 		else:
 			min_r = 1
 			speed = speed + 5
-		if (length==0) or (speed==0):
-			return '-', '-'
 
 		yellow = 1 + (0.733 * speed)/(10 + (0.32 * grade))
 		yellow_r = ceil(2 * yellow)/2
@@ -91,58 +95,55 @@ class update_intersection:
 			return '-'
 		if red=='-':
 			red = 0
+		if yellow=='-':
+			yellow = 0
 		pct = length / 3.5
 		fdw = pct - (float(yellow) + float(red) - 3)
 		fdw = max(4.0, fdw)
 		fdw = ceil(fdw)
 		return str(fdw)
 	def POST(self):
-		phases = ['1', '2', '3', '4', '5', '6', '7', '8']
 		form = dict(web.input())
 		lag = []
 		if 'major' not in form:
-			for p in phases:
-				p = 'p' + p + '_'
-				yar_length = form[p + 'yar_len']
-				if yar_length:
-					yar_length = int(float(yar_length))
-				else:
-					yar_length = 0
-				fdw_length = form[p + 'fdw_len']
-				if fdw_length:
-					fdw_length = int(float(form[p + 'fdw_len']))
-				else:
-					fdw_length = 0
-				speed = form[p + 'speed']
-				if speed:
-					speed = float(speed)
-				else:
-					speed = 0
-				grade = form[p + 'grade']
-				mov = form[p + 'mov']
-				if grade:
-					grade = int(float(grade))
-				else:
-					grade = 0
+			for index in range(8):
+				yar_length = form['yar_len'].split(';')[index]
+				yar_length = int(float(yar_length or 0))
+
+				fdw_length = form['fdw_len'].split(';')[index]
+				fdw_length = int(float(fdw_length or 0))
+
+				speed = form['speed'].split(';')[index]
+				speed = float(speed or 0)
+
+				grade = form['grade'].split(';')[index]
+				grade = float(grade or 0)
+
+				mov = form['mov'].split(';')[index]
+
 				yellow, red = self.calcYAR(yar_length, speed, grade, mov)
+				print yellow
+				print red
 				fdw = self.calcFDW(fdw_length, red, yellow)
-				form[p + 'y'] = yellow
-				form[p + 'r'] = red
-				form[p + 'f'] = fdw
-				if (p + 'lag') in form:
-					if form[p + 'lag'] in phases:
-						adj = 'p' + form[p + 'lag'] + '_'
-						lag.append([p, adj])
-			for phase in lag:
-				yellow = max(form[phase[0] + 'y'], form[phase[1] + 'y'])
-				red = max(form[phase[0] + 'r'], form[phase[1] + 'r'])
-				fdw = max(form[phase[0] + 'f'], form[phase[1] + 'f'])
-				form[phase[0] + 'y'] = yellow
-				form[phase[1] + 'y'] = yellow
-				form[phase[0] + 'r'] = red
-				form[phase[1] + 'r'] = red
-				form[phase[0] + 'f'] = fdw
-				form[phase[1] + 'f'] = fdw
+				
+				form ['yellow'] = self.editList(form['yellow'], index, yellow)
+				form ['red'] = self.editList(form['red'], index, red)
+				form ['fdw'] = self.editList(form['fdw'], index, fdw)
+
+				adj = form['lag'].split(';')[index]
+				if adj:
+					lag.append([index, int(adj)])
+
+			for index, adj in lag:
+				yellow = max(form['yellow'].split(';')[index], form['yellow'].split(';')[adj])
+				red = max(form['red'].split(';')[index], form['red'].split(';')[adj])
+				fdw = max(form['fdw'].split(';')[index], form['fdw'].split(';')[adj])
+				form ['yellow'] = self.editList(form['yellow'], index, yellow)
+				form ['yellow'] = self.editList(form['yellow'], adj, yellow)
+				form ['red'] = self.editList(form['red'], index, red)
+				form ['red'] = self.editList(form['red'], adj, red)
+				form ['fdw'] = self.editList(form['fdw'], index, fdw)
+				form ['fdw'] = self.editList(form['fdw'], adj, fdw)
 
 		db.modify(**form)
 		raise web.seeother('/intersection' + '?IntID=' + form['int_id'])
