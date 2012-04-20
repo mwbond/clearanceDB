@@ -98,35 +98,35 @@ class update_intersection:
 	def POST(self):
 		form = dict(web.input())
 		if 'p1_yar_len' in form:
-			for phase in ['1', '2', '3', '4', '5', '6', '7', '8']:
-				yar_length = form['p' + phase + '_yar_len']
+			for p in ['1', '2', '3', '4', '5', '6', '7', '8']:
+				yar_length = form['p' + p + '_yar_len']
 				if yar_length:
 					yar_length = int(float(yar_length))
 				else:
 					yar_length = 0
-				fdw_length = form['p' + phase + '_fdw_len']
+				fdw_length = form['p' + p + '_fdw_len']
 				if fdw_length:
-					fdw_length = int(float(form['p' + phase + '_fdw_len']))
+					fdw_length = int(float(form['p' + p + '_fdw_len']))
 				else:
 					fdw_length = 0
-				speed = form['p' + phase + '_speed']
+				speed = form['p' + p + '_speed']
 				if speed:
 					speed = float(speed)
 					#speed = (float(speed) + 5)
 					#speed = speed * 5280 / 3600
 				else:
 					speed = 0
-				grade = form['p' + phase + '_grade']
-				mov = form['p' + phase + '_mov']
+				grade = form['p' + p + '_grade']
+				mov = form['p' + p + '_mov']
 				if grade:
 					grade = int(float(grade))
 				else:
 					grade = 0
 				yellow, red = self.calcYAR(yar_length, speed, grade, mov)
 				fdw = self.calcFDW(fdw_length, red, yellow)
-				form['p' + phase + '_y'] = yellow
-				form['p' + phase + '_r'] = red
-				form['p' + phase + '_f'] = fdw
+				form['p' + p + '_y'] = yellow
+				form['p' + p + '_r'] = red
+				form['p' + p + '_f'] = fdw
 		db.modify(**form)
 		raise web.seeother('/intersection' + '?IntID=' + form['int_id'])
 
