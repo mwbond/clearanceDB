@@ -66,6 +66,7 @@ class update_intersection:
 			speed = 20
 		else:
 			min_r = 1
+			speed = speed + 5
 		if (length==0) or (speed==0):
 			return '-', '-'
 
@@ -96,37 +97,53 @@ class update_intersection:
 		fdw = ceil(fdw)
 		return str(fdw)
 	def POST(self):
+		phases = ['1', '2', '3', '4', '5', '6', '7', '8']
 		form = dict(web.input())
-		if 'p1_yar_len' in form:
-			for p in ['1', '2', '3', '4', '5', '6', '7', '8']:
-				yar_length = form['p' + p + '_yar_len']
+		lag = []
+		if 'major' not in form:
+			for p in phases:
+				p = 'p' + p + '_'
+				yar_length = form[p + 'yar_len']
 				if yar_length:
 					yar_length = int(float(yar_length))
 				else:
 					yar_length = 0
-				fdw_length = form['p' + p + '_fdw_len']
+				fdw_length = form[p + 'fdw_len']
 				if fdw_length:
-					fdw_length = int(float(form['p' + p + '_fdw_len']))
+					fdw_length = int(float(form[p + 'fdw_len']))
 				else:
 					fdw_length = 0
-				speed = form['p' + p + '_speed']
+				speed = form[p + 'speed']
 				if speed:
 					speed = float(speed)
-					#speed = (float(speed) + 5)
-					#speed = speed * 5280 / 3600
 				else:
 					speed = 0
-				grade = form['p' + p + '_grade']
-				mov = form['p' + p + '_mov']
+				grade = form[p + 'grade']
+				mov = form[p + 'mov']
 				if grade:
 					grade = int(float(grade))
 				else:
 					grade = 0
 				yellow, red = self.calcYAR(yar_length, speed, grade, mov)
 				fdw = self.calcFDW(fdw_length, red, yellow)
-				form['p' + p + '_y'] = yellow
-				form['p' + p + '_r'] = red
-				form['p' + p + '_f'] = fdw
+				form[p + 'y'] = yellow
+				form[p + 'r'] = red
+				form[p + 'f'] = fdw
+				if (p + 'lag') in form:
+					if form[p + 'lag'] in phases:
+						adj = 'p' + form[p + 'lag'] + '_'
+						lag.append([p, adj])
+			for phase in lag:
+				yellow = max(form[phase[0] + 'y'], form[phase[1] + 'y'])
+				red = max(form[phase[0] + 'r'], form[phase[1] + 'r'])
+				fdw = max(form[phase[0] + 'f'], form[phase[1] + 'f'])
+				form[phase[0] + 'y'] = yellow
+				form[phase[1] + 'y'] = yellow
+				form[phase[0] + 'r'] = red
+				form[phase[1] + 'r'] = red
+				form[phase[0] + 'f'] = fdw
+				form[phase[1] + 'f'] = fdw
+
 		db.modify(**form)
 		raise web.seeother('/intersection' + '?IntID=' + form['int_id'])
 

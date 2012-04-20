@@ -180,6 +180,20 @@ $def with (kwargs)
 				checkbox.value = 'on';
 			}
 		}
+
+		function disableBox(elem_id)
+		{
+			var box = document.getElementById(elem_id);
+			if(box.disabled)
+			{
+				box.disabled = '';
+			}
+			else
+			{
+				box.disabled = 'disabled';
+				box.value = '';
+			}
+		}
 	</script>
 </head>
 <body onload='initialize()'>
@@ -207,7 +221,7 @@ $def with (kwargs)
 			<input type='hidden' id='int_id' name='int_id' value='$kwargs['int_id']' />
 			<table>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
-				<tr><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td></tr>
+				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td><td><b>Lag</b></td><td><b>Adj Phase</b></td></tr>
 			$for p in ['1', '2', '3', '4', '5', '6', '7', '8']:
 				$ blank = 'p' + p + '_'
 				$ yar = blank + 'yar'
@@ -223,6 +237,7 @@ $def with (kwargs)
 				$ road = blank + 'road'
 				$ grade = blank + 'grade'
 				$ speed = blank + 'speed'
+				$ lag = blank + 'lag'
 				$ val_yar_len = kwargs[yar_len]
 				$ val_yar_line = kwargs[yar_line]
 				$ val_fdw_len = kwargs[fdw_len]
@@ -232,6 +247,7 @@ $def with (kwargs)
 				$ val_road = kwargs[road]
 				$ val_grade = kwargs[grade]
 				$ val_speed = kwargs[speed]
+				$ val_lag = kwargs[lag]
 				<tr>
 					<td><strong>Phase $p</strong></td>
 					<td>
@@ -258,6 +274,12 @@ $def with (kwargs)
 					<td><input type='text' name='$road' size='15' placeholder='Road Name' value='$val_road' /></td>
 					<td><input type='text' name='$grade' size='5' placeholder='Grade (%)' value='$val_grade' /></td>
 					<td><input type='text' name='$speed' id='$speed' size='5' placeholder='MPH' value='$val_speed' /></td>
+				$if val_lag=='':
+					<td><input type=checkbox onClick="disableBox('$lag')" /></td>
+					<td><input type='text' name='$lag' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$val_lag' disabled='disabled' /></td>
+				$if val_lag!='':
+					<td><input type=checkbox onClick="disableBox('$lag')" checked /></td>
+					<td><input type='text' name='$lag' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$val_lag' /></td>
 				</tr>
 			</table>
 			<input type='submit' value='Update Phasing Information' />

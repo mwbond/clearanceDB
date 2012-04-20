@@ -1,4 +1,5 @@
 $def with (kwargs)
+$ phases = ['1', '2', '3', '4', '5', '6', '7', '8']
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -92,84 +93,6 @@ $def with (kwargs)
 			this.setMap(map);
 		}
 
-		function updateTable(elem_id, yar_length, fdw_length, grade, speed, mov)
-		{
-			var yellow = calculateYellow(yar_length, speed, grade);
-			var red = calculateRed(yar_length, speed, mov);
-			var fdw = calculateFDW(fdw_length, red);
-			document.getElementById(elem_id + '_y').innerHTML = yellow;
-			document.getElementById(elem_id + '_r').innerHTML = red;
-			document.getElementById(elem_id + '_f').innerHTML = fdw;
-		}
-
-		function calculateFDW(length, red)
-		{
-			if(length==0)
-			{
-				return 0;
-			}
-			var pct = length/3.5;
-			return Math.ceil(pct - Math.max(red, 3));
-		}
-
-		function calculateYellow(length, speed, grade)
-		{
-			if(length==0)
-			{
-				return 0;
-			}
-			var yellow = 1 + (0.733*speed)/(10 + (0.32*grade));
-			yellow = Math.max(yellow, 4.0);
-			yellow = Math.min(yellow, 6.0);
-			yellow = roundUpToHalf(yelow);
-			return yellow;
-		}
-
-		function calculateRed(length, speed, mov)
-		{
-			if(length==0)
-			{
-				return 0;
-			}
-			var red = length/speed;
-			if(mov=='Turn')
-			{
-				red = max(red, 0.5);
-			}
-			else
-			{
-				red = max(red, 1.0);
-			}
-			var rounded = roundDownToHalf(red);
-			if((red-rounded)<=0.1)
-			{
-				return rounded;
-			}
-			return red;
-		}
-
-		function roundDownToHalf(value)
-		{ 
-			var down = Math.floor(value);
-			var rem = value - down;
-			if(rem >= 0.5)
-			{
-				return down + 0.5;
-			}
-			return down;
-		}
-
-		function roundUpToHalf(value)
-		{ 
-			var up = Math.ceil(value);
-			var rem = up - value;
-			if(rem >= 0.5)
-			{
-				return up - 0.5;
-			}
-			return up;
-		}
-
 		textOverlay.prototype = new google.maps.OverlayView();
 
 		textOverlay.prototype.onAdd = function()
@@ -199,66 +122,56 @@ $def with (kwargs)
 </head>
 <body onload='initialize()'>
 	<a href='http://localhost:8080'>Go Home</a>
-	<p style='margin-bottom:10px;text-align:center;font-size:36px;font-weight:bold'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</p>
-	<div id='map_canvas' style='margin:auto;width:600px;height:600px'></div>
-	<table style='margin:auto;text-align:center;font-size:20px' border='1'>
-		<col />
-		<col width='50' />
-		<col width='50' />
-		<col width='50' />
-		<col width='50' />
-		<col width='50' />
-		<col width='50' />
-		<col width='50' />
-		<col width='50' />
-		<tr>
-			<td />
-			<td colspan='8'><b>PHASE NUMBER</b></td>
-		<tr>
-			<td />
-			<td><b>1</b></td>
-			<td><b>2</b></td>
-			<td><b>3</b></td>
-			<td><b>4</b></td>
-			<td><b>5</b></td>
-			<td><b>6</b></td>
-			<td><b>7</b></td>
-			<td><b>8</b></td>
-		</tr>
-		<tr>
-			<td style='text-align:right'><b>Yellow (Y)</b></td>
-			<td>$kwargs['p1_y']</td>
-			<td>$kwargs['p2_y']</td>
-			<td>$kwargs['p3_y']</td>
-			<td>$kwargs['p4_y']</td>
-			<td>$kwargs['p5_y']</td>
-			<td>$kwargs['p6_y']</td>
-			<td>$kwargs['p7_y']</td>
-			<td>$kwargs['p8_y']</td>
-		</tr>
-		<tr>
-			<td style='text-align:right'><b>All-Red (AR)</b></td>
-			<td>$kwargs['p1_r']</td>
-			<td>$kwargs['p2_r']</td>
-			<td>$kwargs['p3_r']</td>
-			<td>$kwargs['p4_r']</td>
-			<td>$kwargs['p5_r']</td>
-			<td>$kwargs['p6_r']</td>
-			<td>$kwargs['p7_r']</td>
-			<td>$kwargs['p8_r']</td>
-		</tr>
-		<tr>
-			<td style='text-align:right'><b>Flashing Don't Walk (FDW)</b></td>
-			<td>$kwargs['p1_f']</td>
-			<td>$kwargs['p2_f']</td>
-			<td>$kwargs['p3_f']</td>
-			<td>$kwargs['p4_f']</td>
-			<td>$kwargs['p5_f']</td>
-			<td>$kwargs['p6_f']</td>
-			<td>$kwargs['p7_f']</td>
-			<td>$kwargs['p8_f']</td>
-		</tr>
-	</table>
-</form>
+	<br>
+	<div style='text-align:center'>
+		<b style='font-size:36px'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</b>
+		<div id='map_canvas' style='margin:auto;width:600px;height:600px'></div>
+		<table style='margin:auto;font-size:20px'>
+			$for p in phases:
+				$ dir = kwargs['p' + p + '_dir']
+				$ road = kwargs['p' + p + '_road']
+				<tr>
+					<td>Phase $p:</td>
+				$if dir and road:
+					<td style='text-align:left'>$dir on $road</td>
+				$elif dir:
+					<td style='text-align:left'>$dir</td>
+				$elif road:
+					<td style='text-align:left'>$road</td>
+				</tr>
+		</table>
+		<table style='margin:auto;font-size:20px' border='1'>
+			<col />
+			$for p in phases:
+				<col width='50' />
+			<tr>
+				<td />
+				$ length = len(phases)
+				<td colspan='$length'><b>PHASE NUMBER</b></td>
+			<tr>
+				<td />
+				$for p in phases:
+					<td><b>$p</b></td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>Yellow (Y)</b></td>
+				$for p in phases:
+					$ yellow = kwargs['p' + p + '_y']
+					<td>$yellow</td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>All-Red (AR)</b></td>
+				$for p in phases:
+					$ red = kwargs['p' + p + '_r']
+					<td>$red</td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>Flashing Don't Walk (FDW)</b></td>
+				$for p in phases:
+					$ fdw = kwargs['p' + p + '_f']
+					<td>$fdw</td>
+			</tr>
+		</table>
+	</div>
 </body>
 </html>
