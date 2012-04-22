@@ -1,4 +1,5 @@
 $def with (kwargs)
+$ num_phases = 8
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -44,7 +45,7 @@ $def with (kwargs)
 			if(path.getLength() > 1)
 			{
 				length = google.maps.geometry.spherical.computeLength(path) * 3.28;
-				measure.lineLength = length.toFixed(0).toString();
+				measure.lineLength = Math.ceil(length).toString();
 				length = measure.lineLength + '\'';
 				return length;
 			}
@@ -201,7 +202,7 @@ $def with (kwargs)
 
 		function validate(elem_id, value, p)
 		{
-			if(value.indexOf(';') >= 0)
+			if(value.indexOf(';') != -1)
 				return false;
 			if(value=='')
 				return true;
@@ -291,14 +292,11 @@ $def with (kwargs)
 			<input type='hidden' id='dir'		name='dir'		value='$kwargs['dir']' />
 			<input type='hidden' id='yar_len'	name='yar_len'	value='$kwargs['yar_len']' />
 			<input type='hidden' id='fdw_len'	name='fdw_len'	value='$kwargs['fdw_len']' />
-			<input type='hidden' id='yellow'	name='yellow'	value='$kwargs['yellow']' />
-			<input type='hidden' id='red'		name='red'		value='$kwargs['red']' />
-			<input type='hidden' id='fdw'		name='fdw'		value='$kwargs['fdw']' />
 			<input type='hidden' id='lag'		name='lag'		value='$kwargs['lag']' />
 			<table>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
 				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td><td><b>Lag</b></td><td><b>Adj Phase</b></td></tr>
-			$for index, p in [[0, '1'], [1, '2'], [2, '3'], [3, '4'], [4, '5'], [5, '6'], [6, '7'], [7, '8']]:
+			$for index, p in zip(range(num_phases), map(str, range(num_phases))):
 				$ yar = p + 'yar'
 				$ fdw = p + 'fdw'
 				$ dir = p + 'dir'

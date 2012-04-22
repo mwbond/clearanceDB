@@ -1,5 +1,6 @@
 import sqlite3
-default = "'" + 7 * ';' + "'"
+num_phases = 8
+default = "'" + (num_phases - 1) * ';' + "'"
 conn = sqlite3.connect('intersection_db')
 c = conn.cursor()
 command = '''create table intersection
@@ -19,9 +20,6 @@ command = '''create table intersection
 			dir default $,
 			yar_len default $,
 			fdw_len default $,
-			yellow default $,
-			red default $,
-			fdw default $,
 			lag default $)'''
 
 c.execute(command.replace('$', default))

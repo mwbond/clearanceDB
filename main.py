@@ -5,6 +5,8 @@ from math import ceil
 
 import db
 
+num_phases = 8
+
 urls = ('/', 'home',
 		'/update_location', 'update_location',
 		'/overview', 'overview',
@@ -56,14 +58,23 @@ class intersection:
 			kwargs['map_lng'] = '-76.67'
 		if not kwargs['map_zoom']:
 			kwargs['map_zoom'] = '18'
-		render = web.template.render('templates')
+
+		render = web.template.render('templates', globals={'map': map, 'str': str, 'zip': zip})
 		return render.intersection(kwargs)
 
 class update_intersection:
-	def editList(self, string, index, value):
-		split = string.split(';')
-		split[index] = value
-		return ';'.join(split)
+	def POST(self):
+		form = dict(web.input())
+		db.modify(**form)
+		raise web.seeother('/intersection' + '?IntID=' + form['int_id'])
+
+class add_entry:
+	def POST(self):
+		form = dict(web.input())
+		db.modify(**form)
+		raise web.seeother('/overview')
+
+class output:
 	def calcYAR(self, length, speed, grade, turn):
 		if (length==0) or (speed==0):
 			return '-', '-'
@@ -90,76 +101,56 @@ class update_intersection:
 		if(diff_yellow + diff_red) < 0:
 			yellow_r = yellow_r + 0.5
 		return str(yellow_r / 1.0), str(red_r / 1.0)
-	def calcFDW(self, length, red, yellow):
+	def calcPed(self, length, red, yellow):
+		min_walk = 7
 		if length==0:
-			return '-'
+			return '-', '-', '-'
 		if red=='-':
 			red = 0
 		if yellow=='-':
 			yellow = 0
 		pct = length / 3.5
-		fdw = pct - (float(yellow) + float(red) - 3)
-		fdw = max(4.0, fdw)
-		fdw = ceil(fdw)
-		return str(fdw)
-	def POST(self):
-		form = dict(web.input())
-		lag = []
-		if 'major' not in form:
-			for index in range(8):
-				yar_length = form['yar_len'].split(';')[index]
-				yar_length = int(float(yar_length or 0))
-
-				fdw_length = form['fdw_len'].split(';')[index]
-				fdw_length = int(float(fdw_length or 0))
-
-				speed = form['speed'].split(';')[index]
-				speed = float(speed or 0)
-
-				grade = form['grade'].split(';')[index]
-				grade = float(grade or 0)
-
-				mov = form['mov'].split(';')[index]
-
-				yellow, red = self.calcYAR(yar_length, speed, grade, mov)
-				print yellow
-				print red
-				fdw = self.calcFDW(fdw_length, red, yellow)
-				
-				form ['yellow'] = self.editList(form['yellow'], index, yellow)
-				form ['red'] = self.editList(form['red'], index, red)
-				form ['fdw'] = self.editList(form['fdw'], index, fdw)
-
-				adj = form['lag'].split(';')[index]
-				if adj:
-					lag.append([index, int(adj)])
-
-			for index, adj in lag:
-				yellow = max(form['yellow'].split(';')[index], form['yellow'].split(';')[adj])
-				red = max(form['red'].split(';')[index], form['red'].split(';')[adj])
-				fdw = max(form['fdw'].split(';')[index], form['fdw'].split(';')[adj])
-				form ['yellow'] = self.editList(form['yellow'], index, yellow)
-				form ['yellow'] = self.editList(form['yellow'], adj, yellow)
-				form ['red'] = self.editList(form['red'], index, red)
-				form ['red'] = self.editList(form['red'], adj, red)
-				form ['fdw'] = self.editList(form['fdw'], index, fdw)
-				form ['fdw'] = self.editList(form['fdw'], adj, fdw)
-
-		db.modify(**form)
-		raise web.seeother('/intersection' + '?IntID=' + form['int_id'])
-
-class add_entry:
-	def POST(self):
-		form = dict(web.input())
-		db.modify(**form)
-		raise web.seeother('/overview')
-
-class output:
+		walk = round(max((length + 6)/3 - pct, min_walk))
+		fdw = pct - (float(yellow) + float(red))
+		pct = round(pct)
+		fdw = round(max(4.0, fdw))
+		return map(str, [walk, pct, fdw])
 	def GET(self):
+		timings = []
+		lag = []
 		int_id = web.input().IntID
 		kwargs = db.get_info(int_id)
+		for index in range(num_phases):
+			yar_length = kwargs['yar_len'].split(';')[index]
+			fdw_length = kwargs['fdw_len'].split(';')[index]
+			speed = kwargs['speed'].split(';')[index]
+			grade = kwargs['grade'].split(';')[index]
+			mov = kwargs['mov'].split(';')[index]
+			adj = kwargs['lag'].split(';')[index]
+			if adj:
+				lag.append([index, int(adj) - 1])
+
+			yar_length = int(yar_length or 0)
+			fdw_length = int(fdw_length or 0)
+			speed = int(speed or 0)
+			grade = float(grade or 0)
+
+			yellow, red = self.calcYAR(yar_length, speed, grade, mov)
+			walk, pct, fdw = self.calcPed(fdw_length, red, yellow)
+			
+			timings.append([yellow, red, walk, pct, fdw])
+
+		for index, adj in lag:
+			yellow = max(timings[index][0], timings[adj][0])
+			red = max(timings[index][1], timings[adj][1])
+			walk = max(timings[index][2], timings[adj][2])
+			pct  = max(timings[index][3], timings[adj][3])
+			fdw = max(timings[index][4], timings[adj][4])
+			timings[index] = [yellow, red, walk, pct, fdw]
+			timings[adj] = [yellow, red, walk, pct, fdw]
+
 		render = web.template.render('templates')
-		return render.output(kwargs)
+		return render.output(kwargs, timings)
 
 class batch_process:
 	def POST(self):

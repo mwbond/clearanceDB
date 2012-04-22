@@ -1,4 +1,5 @@
-$def with (kwargs)
+$def with (kwargs, timings)
+$ num_phases = 8
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -15,8 +16,13 @@ $def with (kwargs)
 			var length;
 			var initOptions = {
 				center: latlng,
+				draggable: false,
+				mapTypeControl: false,
+				mapTypeId: google.maps.MapTypeId.HYBRID,
+				panControl: false,
+				streetViewControl: false,
 				zoom: $kwargs['map_zoom'],
-				mapTypeId: google.maps.MapTypeId.HYBRID
+				zoomControl: false
 			};
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
 			yar_length = drawLine('$kwargs['yar_line'].split(';')[0]', '#ff0000', 0);
@@ -126,7 +132,7 @@ $def with (kwargs)
 		<b style='font-size:36px'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</b>
 		<div id='map_canvas' style='margin:auto;width:600px;height:600px'></div>
 		<table style='margin:auto;font-size:20px'>
-			$for index in range(8):
+			$for index in range(num_phases):
 				$ dir = kwargs['dir'].split(';')[index]
 				$ road = kwargs['road'].split(';')[index]
 				<tr>
@@ -142,34 +148,41 @@ $def with (kwargs)
 		</table>
 		<table style='margin:auto;font-size:20px' border='1'>
 			<col />
-			$for index in range(8):
+			$for index in range(num_phases):
 				<col width='50' />
 			<tr>
 				<td />
 				<td colspan='8'><b>PHASE NUMBER</b></td>
 			<tr>
 				<td />
-				$for index in range(8):
+				$for index in range(num_phases):
 					$ phase = index + 1
 					<td><b>$phase</b></td>
 			</tr>
 			<tr>
 				<td style='text-align:right'><b>Yellow (Y)</b></td>
-				$for index in range(8):
-					$ yellow = kwargs['yellow'].split(';')[index]
-					<td>$yellow</td>
+				$for index in range(num_phases):
+					<td>$timings[index][0]</td>
 			</tr>
 			<tr>
 				<td style='text-align:right'><b>All-Red (AR)</b></td>
-				$for index in range(8):
-					$ red = kwargs['red'].split(';')[index]
-					<td>$red</td>
+				$for index in range(num_phases):
+					<td>$timings[index][1]</td>
 			</tr>
 			<tr>
-				<td style='text-align:right'><b>Flashing Don't Walk (FDW)</b></td>
-				$for index in range(8):
-					$ fdw = kwargs['fdw'].split(';')[index]
-					<td>$fdw</td>
+				<td style='text-align:right'><b>Walk</b></td>
+				$for index in range(num_phases):
+					<td>$timings[index][2]</td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>Ped Crossing Time (PCT)</b></td>
+				$for index in range(num_phases):
+					<td>$timings[index][3]</td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>Flash Don't Walk (FDW)</b></td>
+				$for index in range(num_phases):
+					<td>$timings[index][4]</td>
 			</tr>
 		</table>
 	</div>
