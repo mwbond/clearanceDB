@@ -139,13 +139,6 @@ class intersection:
 		int_id = web.input().IntID
 		kwargs = db.get_info(int_id)
 		location = db.get_info()['location']
-		#DEFAULTS
-		if not kwargs['map_lat']:
-			kwargs['map_lat'] = '39.26'
-			kwargs['map_lng'] = '-76.67'
-		if not kwargs['map_zoom']:
-			kwargs['map_zoom'] = '18'
-
 		render = web.template.render('templates', globals={'map': map, 'str': str, 'zip': zip})
 		return render.intersection(kwargs, location)
 

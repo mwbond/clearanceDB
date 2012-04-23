@@ -9,25 +9,31 @@ $ num_phases = 8
 	<script type='text/javascript' src='http://maps.googleapis.com/maps/api/js?key=AIzaSyAWXZXhG-0Hltuxf0CSwjZjf164WwnDFCE&sensor=false&libraries=geometry'></script>
 	<script type='text/javascript'>
 		var map;
-		var measure = {mvcMarkers:new google.maps.MVCArray(), mvcLine:new google.maps.MVCArray(), line:null, lineLength:'0'};
 		var initOptions;
-		var latlng = new google.maps.LatLng($kwargs['map_lat'], $kwargs['map_lng']);
+		var current_latlng;
+		var lat;
+		var lng;
+		var geocoder;
+		var locations;
+		var zoom;
+		var latlng;
+		var measure = {mvcMarkers:new google.maps.MVCArray(), mvcLine:new google.maps.MVCArray(), line:null, lineLength:'0'};
+		var query;
 		
 		function initialize()
 		{
 			initOptions = {
-				center: latlng,
-				zoom: $kwargs['map_zoom'],
 				mapTypeId: google.maps.MapTypeId.HYBRID
 			};
-
+			
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
+			codeAddress();
 			google.maps.event.addListener(map, 'click', addLatLng);
 			google.maps.event.addListener(map, 'center_changed', function()
 			{
-				var current_latlng = map.getCenter();
-				var lat = current_latlng.lat().toString();
-				var lng = current_latlng.lng().toString();
+				current_latlng = map.getCenter();
+				lat = current_latlng.lat().toString();
+				lng = current_latlng.lng().toString();
 				document.getElementById('map_lat').value = lat;
 				document.getElementById('map_lat_txt').innerHTML = lat;
 				document.getElementById('map_lng').value = lng;
@@ -35,10 +41,33 @@ $ num_phases = 8
 			});
 			google.maps.event.addListener(map, 'zoom_changed', function()
 			{
-				var zoom = map.getZoom().toString();
+				zoom = map.getZoom().toString();
 				document.getElementById('map_zoom').value = zoom;
 				document.getElementById('map_zoom_txt').innerHTML = zoom;
 			});
+		}
+
+		function codeAddress()
+		{
+			$if(kwargs['map_lat']):
+				latlng = new google.maps.LatLng($kwargs['map_lat'], $kwargs['map_lng']);
+				map.setCenter(latlng);
+			$else:
+				query = '$kwargs['major']' + ' at ' + '$kwargs['minor']' + ', ' + '$location';
+				geocoder = new google.maps.Geocoder();
+				geocoder.geocode({'address': query}, function(results, status) {
+					if(status==google.maps.GeocoderStatus.OK)
+						map.setCenter(results[0].geometry.location);
+					else
+					{
+						latlng = new google.maps.LatLng(38.92, -77.03);
+						map.setCenter(latlng);
+					}
+				});
+			$if(kwargs['map_zoom']):
+				map.setZoom($kwargs['map_zoom']);
+			$else:
+				map.setZoom(18);
 		}
 		
 		function getLength(path)
