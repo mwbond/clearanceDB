@@ -160,29 +160,30 @@ class output:
 			return '-', '-'
 		if turn:
 			min_r = 0.5
-			speed = 20
+			y_speed = 20.0
+			r_speed = 1.47 * 20.0
 		else:
-			min_r = 1
-			speed = speed + 5
+			min_r = 1.0
+			y_speed = speed + 5.0
+			r_speed = 1.47 * speed
 
-		yellow = 1 + (0.733 * speed)/(10 + (0.32 * grade))
-		yellow_r = ceil(2 * yellow)/2
-		yellow = round(yellow, 1)
-		red = length / speed
-		red_r = ceil(2 * red)/2
-		red = round(red, 1)
-		diff_yellow = yellow - yellow_r
-		diff_red = red - red_r
+		yellow_c = 1 + (0.733 * y_speed)/(10.0 + (0.32 * grade))
+		yellow_r = ceil(2 * yellow_c)/2.0
+		yellow_c = round(yellow_c, 1)
+		red_c = length / r_speed
+		red_r = ceil(2 * red_c) / 2.0
+		red_c = round(red_c, 1)
 
 		yellow_r = min(yellow_r, 6)
 		yellow_r = max(yellow_r, 4)
 		red_r = min(red_r, 3)
 		red_r = max(red_r, min_r)
-		if(diff_yellow + diff_red) < 0:
-			yellow_r = yellow_r + 0.5
+		diff = yellow_c + red_c - yellow_r - red_r
+		diff = ceil(2 * diff) / 2.0
+		if diff > 0:
+			yellow_r = yellow_r + diff
 		return str(yellow_r / 1.0), str(red_r / 1.0)
-	def calcPed(self, length, red, yellow):
-		min_walk = 7
+	def calcPed(self, length, red, yellow, min_walk):
 		if length==0:
 			return '-', '-', '-'
 		if red=='-':
@@ -190,8 +191,8 @@ class output:
 		if yellow=='-':
 			yellow = 0
 		pct = length / 3.5
-		walk = round(max((length + 6)/3 - pct, min_walk))
-		fdw = pct - (float(yellow) + float(red))
+		walk = round(max((length + 6) / 3.0 - pct, min_walk))
+		fdw = pct - float(yellow) - float(red)
 		pct = round(pct)
 		fdw = round(max(4.0, fdw))
 		return map(str, [walk, pct, fdw])
@@ -207,6 +208,8 @@ class output:
 			grade = kwargs['grade'].split(';')[index]
 			mov = kwargs['mov'].split(';')[index]
 			adj = kwargs['lag'].split(';')[index]
+			min_walk = kwargs['min_walk'].split(';')[index] or '7'
+			min_walk = float(min_walk)
 			if adj:
 				lag.append([index, int(adj) - 1])
 
@@ -216,7 +219,7 @@ class output:
 			grade = float(grade or 0)
 
 			yellow, red = self.calcYAR(yar_length, speed, grade, mov)
-			walk, pct, fdw = self.calcPed(fdw_length, red, yellow)
+			walk, pct, fdw = self.calcPed(fdw_length, red, yellow, min_walk)
 			
 			timings.append([yellow, red, walk, pct, fdw])
 

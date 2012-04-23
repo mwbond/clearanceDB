@@ -17,9 +17,11 @@ $ num_phases = 8
 			var initOptions = {
 				center: latlng,
 				draggable: false,
+				disableDoubleClickZoom: true,
 				mapTypeControl: false,
 				mapTypeId: google.maps.MapTypeId.HYBRID,
 				panControl: false,
+				scrollwheel: false,
 				streetViewControl: false,
 				zoom: $kwargs['map_zoom'],
 				zoomControl: false
