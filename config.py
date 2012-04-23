@@ -20,6 +20,7 @@ command = '''create table intersection
 			dir default $,
 			yar_len default $,
 			fdw_len default $,
+			min_walk default $,
 			lag default $)'''
 
 c.execute(command.replace('$', default))

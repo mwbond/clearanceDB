@@ -1,4 +1,4 @@
-$def with (kwargs)
+$def with (kwargs, location)
 $ num_phases = 8
 <!DOCTYPE HTML>
 <html>
@@ -20,6 +20,7 @@ $ num_phases = 8
 				zoom: $kwargs['map_zoom'],
 				mapTypeId: google.maps.MapTypeId.HYBRID
 			};
+
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
 			google.maps.event.addListener(map, 'click', addLatLng);
 			google.maps.event.addListener(map, 'center_changed', function()
@@ -296,7 +297,7 @@ $ num_phases = 8
 			<table>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
 				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td><td><b>Lag</b></td><td><b>Adj Phase</b></td></tr>
-			$for index, p in zip(range(num_phases), map(str, range(num_phases))):
+			$for index, p in zip(range(num_phases), map(str, range(1, 1 + num_phases))):
 				$ yar = p + 'yar'
 				$ fdw = p + 'fdw'
 				$ dir = p + 'dir'
@@ -321,7 +322,7 @@ $ num_phases = 8
 						$else:
 							| <input type=checkbox onClick="updateMov($index, '$p')" checked />
 					</td>
-					<td><input type='text' id='$dir' size='1' placeholder='Dir' maxlength=3 value='$kwargs['dir'].split(';')[index]' onBlur="updateTextBox('dir', $index, '$p')" /></td>
+					<td><input type='text' id='$dir' size='2' placeholder='Dir' maxlength=4 value='$kwargs['dir'].split(';')[index]' onBlur="updateTextBox('dir', $index, '$p')" /></td>
 					<td><input type='text' id='$road' size='15' placeholder='Road Name' value='$kwargs['road'].split(';')[index]' onBlur="updateTextBox('road', $index, '$p')" /></td>
 					<td><input type='text' id='$grade' size='5' placeholder='Grade (%)' value='$kwargs['grade'].split(';')[index]' onBlur="updateTextBox('grade', $index, '$p')" /></td>
 					<td><input type='text' id='$speed' size='5' id='$speed' placeholder='MPH' value='$kwargs['speed'].split(';')[index]' onBlur="updateTextBox('speed', $index, '$p')" /></td>

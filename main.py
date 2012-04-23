@@ -28,12 +28,98 @@ class home:
 		db_info = []
 		form = web.input()
 		layout_txt = form.layoutfile
-		f = cStringIO.StringIO(layout_txt)
-		for line in f:
-			db_info.append(line.rstrip().split(','))
-		for int_id, int_name in db_info:
-			int_major, int_minor = int_name.split('&')
-			db.modify(int_id=int_id, major=int_major.rstrip(), minor=int_minor.lstrip())
+		reader = csv.reader(cStringIO.StringIO(layout_txt))
+		int_info = {}
+		heading = ''
+		dirs = []
+		roads = {}
+		len_dirs = 0
+		for row in reader:
+			if len(row)==0:
+				heading = ''
+				continue
+			if '[' in row[0]:
+				heading = row[0][1:-1]
+				continue
+			try:
+				if heading=='Nodes' and row[1]=='0':
+					int_info[row[0]] = {'int_id': row[0], 'lanes': [[], [], [], []]}
+				elif heading=='Links':
+					if row[0]=='RECORDNAME':
+						dirs = row[2:]
+					elif row[0]=='Name' and row[1] in int_info.keys():
+						names = row[2:]
+						names.extend(['']*(len(dirs)-len(names)))
+						roads[row[1]] = dict(zip(dirs, names))
+						names = list(set(names))
+						if '' in names:
+							names.remove('')
+						if len(names) > 1:
+							int_info[row[1]]['minor'] = names[1]
+						if len(names) > 0:
+							int_info[row[1]]['major'] = names[0]
+				elif heading=='Lanes':
+					if row[0]=='RECORDNAME':
+						dirs = [dir for dir in row[2:] if dir[0] in ['N', 'S', 'E', 'W']]
+						len_dirs = len(dirs)
+					if row[1] not in int_info.keys():
+						continue
+					if row[0]=='Speed':
+						int_info[row[1]]['lanes'][0] = row[2:][:len_dirs]
+					elif row[0]=='Grade':
+						int_info[row[1]]['lanes'][1] = row[2:][:len_dirs]
+					elif row[0]=='Phase1':
+						int_info[row[1]]['lanes'][2] = row[2:][:len_dirs]
+					elif row[0]=='Peds':
+						int_info[row[1]]['lanes'][3] = row[2:][:len_dirs]
+			except IndexError:
+				pass
+		for key in int_info.keys():
+			phase_info = [[''] * num_phases,
+						[''] * num_phases,
+						[''] * num_phases,
+						[''] * num_phases,
+						[''] * num_phases,
+						[''] * num_phases]
+			lanes = int_info[key].pop('lanes')
+			speeds, grades, phases, peds = lanes
+			speeds.extend(['']*(len(phases)-len(speeds)))
+			grades.extend(['']*(len(phases)-len(grades)))
+			peds.extend(['']*(len(phases)-len(peds)))
+			for index in range(len(phases)):
+				mov = ''
+				phase = phases[index]
+				if phase=='':
+					continue
+				speed = speeds[index] or '0'
+				if 'L' in dirs[index]:
+					mov = 'on'
+					speed = '20'
+				grade = grades[index] or '0'
+				ped = peds[index] or '0'
+				if int(ped) < 1000:
+					walk = '7'
+				else:
+					walk = '10'
+				phase = int(phase)
+				try:
+					phase_info[0][phase - 1] = speed
+					phase_info[1][phase - 1] = grade
+					phase_info[2][phase - 1] = walk
+					phase_info[3][phase - 1] = dirs[index]
+					phase_info[4][phase - 1] = mov
+					if dirs[index][:2] in roads[key].keys():
+						phase_info[5][phase - 1] = roads[key][dirs[index][:2]]
+
+				except IndexError:
+					pass
+			int_info[key]['speed'] = ';'.join(phase_info[0])
+			int_info[key]['grade'] = ';'.join(phase_info[1])
+			int_info[key]['min_walk'] = ';'.join(phase_info[2])
+			int_info[key]['dir'] = ';'.join(phase_info[3])
+			int_info[key]['mov'] = ';'.join(phase_info[4])
+			int_info[key]['road'] = ';'.join(phase_info[5])
+			db.modify(**int_info[key])
 		raise web.seeother('/')
 
 class update_location:
@@ -52,6 +138,7 @@ class intersection:
 	def GET(self):
 		int_id = web.input().IntID
 		kwargs = db.get_info(int_id)
+		location = db.get_info()['location']
 		#DEFAULTS
 		if not kwargs['map_lat']:
 			kwargs['map_lat'] = '39.26'
@@ -60,7 +147,7 @@ class intersection:
 			kwargs['map_zoom'] = '18'
 
 		render = web.template.render('templates', globals={'map': map, 'str': str, 'zip': zip})
-		return render.intersection(kwargs)
+		return render.intersection(kwargs, location)
 
 class update_intersection:
 	def POST(self):
