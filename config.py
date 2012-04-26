@@ -11,6 +11,7 @@ command = '''create table intersection
 			map_zoom text default '',
 			major text default '',
 			minor text default '',
+			int_controlled text default '',
 			yar_line default $,
 			fdw_line default $,
 			mov default $,
@@ -21,7 +22,7 @@ command = '''create table intersection
 			yar_len default $,
 			fdw_len default $,
 			min_walk default $,
-			lag default $)'''
+			end default $)'''
 
 c.execute(command.replace('$', default))
 conn.commit()

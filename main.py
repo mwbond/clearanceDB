@@ -34,16 +34,15 @@ class home:
 		dirs = []
 		roads = {}
 		len_dirs = 0
+		len_dirs = 0
 		for row in reader:
-			if len(row)==0:
-				heading = ''
-				continue
-			if '[' in row[0]:
-				heading = row[0][1:-1]
-				continue
 			try:
-				if heading=='Nodes' and row[1]=='0':
-					int_info[row[0]] = {'int_id': row[0], 'lanes': [[], [], [], []]}
+				if len(row)==0:
+					heading = ''
+				elif '[' in row[0]:
+					heading = row[0][1:-1]
+				elif heading=='Nodes' and row[1]=='0':
+					int_info[row[0]] = {'int_id': row[0], 'lanes': [[], [], [], []]}#, 'brp': [[], []]}
 				elif heading=='Links':
 					if row[0]=='RECORDNAME':
 						dirs = row[2:]
@@ -72,6 +71,12 @@ class home:
 						int_info[row[1]]['lanes'][2] = row[2:][:len_dirs]
 					elif row[0]=='Peds':
 						int_info[row[1]]['lanes'][3] = row[2:][:len_dirs]
+				'''elif heading=='Phases':
+					if row[0]=='RECORDNAME':
+						int_info[row[1]]['brp'][0] = [p[1:] for p in row[2:]]
+						len_phases = len([p[1:] for p in row[2:]])
+					elif row[0]=='BRP':
+						int_info[row[1]]['brp'][1] = row[2:][:len_phases]'''
 			except IndexError:
 				pass
 		for key in int_info.keys():
@@ -155,7 +160,10 @@ class add_entry:
 		raise web.seeother('/overview')
 
 class output:
-	def calcYAR(self, length, speed, grade, turn):
+	def calcYAR(self, length, speed, grade, turn, int_controlled):
+		div = 2.0
+		if int_controlled:
+			div = 1.0
 		if (length==0) or (speed==0):
 			return '-', '-'
 		if turn:
@@ -168,10 +176,10 @@ class output:
 			r_speed = 1.47 * speed
 
 		yellow_c = 1 + (0.733 * y_speed)/(10.0 + (0.32 * grade))
-		yellow_r = ceil(2 * yellow_c)/2.0
+		yellow_r = ceil(div * yellow_c)/div
 		yellow_c = round(yellow_c, 1)
 		red_c = length / r_speed
-		red_r = ceil(2 * red_c) / 2.0
+		red_r = ceil(div * red_c) / div
 		red_c = round(red_c, 1)
 
 		yellow_r = min(yellow_r, 6)
@@ -179,7 +187,7 @@ class output:
 		red_r = min(red_r, 3)
 		red_r = max(red_r, min_r)
 		diff = yellow_c + red_c - yellow_r - red_r
-		diff = ceil(2 * diff) / 2.0
+		diff = ceil(div * diff) / div
 		if diff > 0:
 			yellow_r = yellow_r + diff
 		return str(yellow_r / 1.0), str(red_r / 1.0)
@@ -198,7 +206,7 @@ class output:
 		return map(str, [walk, pct, fdw])
 	def GET(self):
 		timings = []
-		lag = []
+		end = []
 		int_id = web.input().IntID
 		kwargs = db.get_info(int_id)
 		for index in range(num_phases):
@@ -207,30 +215,29 @@ class output:
 			speed = kwargs['speed'].split(';')[index]
 			grade = kwargs['grade'].split(';')[index]
 			mov = kwargs['mov'].split(';')[index]
-			adj = kwargs['lag'].split(';')[index]
+			adj = kwargs['end'].split(';')[index]
 			min_walk = kwargs['min_walk'].split(';')[index] or '7'
 			min_walk = float(min_walk)
 			if adj:
-				lag.append([index, int(adj) - 1])
+				end.append([index, int(adj) - 1])
 
 			yar_length = int(yar_length or 0)
 			fdw_length = int(fdw_length or 0)
 			speed = int(speed or 0)
 			grade = float(grade or 0)
 
-			yellow, red = self.calcYAR(yar_length, speed, grade, mov)
+			yellow, red = self.calcYAR(yar_length, speed, grade, mov, kwargs['int_controlled'])
 			walk, pct, fdw = self.calcPed(fdw_length, red, yellow, min_walk)
 			
 			timings.append([yellow, red, walk, pct, fdw])
 
-		for index, adj in lag:
-			yellow = max(timings[index][0], timings[adj][0])
-			red = max(timings[index][1], timings[adj][1])
-			walk = max(timings[index][2], timings[adj][2])
-			pct  = max(timings[index][3], timings[adj][3])
-			fdw = max(timings[index][4], timings[adj][4])
-			timings[index] = [yellow, red, walk, pct, fdw]
-			timings[adj] = [yellow, red, walk, pct, fdw]
+		for index, adj in end:
+			y1, r1 = timings[index][:2]
+			y2, r2 = timings[adj][:2]
+			if y1 != '-' and y2 != '-':
+				yellow = max(timings[index][0], timings[adj][0])
+				#have to recalc fdw times due to changed yar
+				red = max(timings[index][1], timings[adj][1])
 
 		render = web.template.render('templates')
 		return render.output(kwargs, timings)

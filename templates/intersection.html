@@ -209,20 +209,6 @@ $ num_phases = 8
 			}
 		}
 
-		function disableBox(index, p)
-		{
-			var lag = document.getElementById('lag');
-			var box = document.getElementById(p + 'lag');
-			if(box.disabled)
-				box.disabled = '';
-			else
-			{
-				box.disabled = 'disabled';
-				box.value = '';
-				lag.value = editList(lag.value, index, '');
-			}
-		}
-
 		function editList(string, index, value)
 		{
 			var split = string.split(';');
@@ -247,7 +233,7 @@ $ num_phases = 8
 			else if(elem_id=='speed')
 			{
 				num = parseFloat(value);
-				if(num >= 0 && num < 200 && (value % 1)==0)
+				if(num >= 0 && num < 200)
 				{
 					num = parseInt(num);
 					if(num.toString()==value)
@@ -255,7 +241,7 @@ $ num_phases = 8
 				}
 			}
 
-			else if(elem_id=='lag')
+			else if(elem_id=='end')
 			{
 				if(p!=value)
 				{
@@ -278,12 +264,12 @@ $ num_phases = 8
 		function updateTextBox(elem_id, index, p)
 		{
 			var textbox = document.getElementById(p + elem_id);
-			var list = document.getElementById(elem_id);
+			var hidden = document.getElementById(elem_id);
 			if(validate(elem_id, textbox.value, p))
-				list.value = editList(list.value, index, textbox.value);
+				hidden.value = editList(hidden.value, index, textbox.value);
 			else
 			{
-				textbox.value = list.value.split(';')[index];
+				textbox.value = hidden.value.split(';')[index];
 				alert('Invalid Input');
 			}
 		}
@@ -310,7 +296,7 @@ $ num_phases = 8
 			</table>
 			<input type='submit' value='Update Intersection Information' />
 		</form>
-		<br />
+		------------------------------------------------------------------------
 		<form name='phase_info' method='POST' action='update_intersection'>
 			<input type='hidden' id='int_id'	name='int_id'	value='$kwargs['int_id']' />
 			<input type='hidden' id='yar_line'	name='yar_line' value='$kwargs['yar_line']' />
@@ -322,27 +308,27 @@ $ num_phases = 8
 			<input type='hidden' id='dir'		name='dir'		value='$kwargs['dir']' />
 			<input type='hidden' id='yar_len'	name='yar_len'	value='$kwargs['yar_len']' />
 			<input type='hidden' id='fdw_len'	name='fdw_len'	value='$kwargs['fdw_len']' />
-			<input type='hidden' id='lag'		name='lag'		value='$kwargs['lag']' />
+			<input type='hidden' id='end'		name='end'		value='$kwargs['end']' />
 			<table>
+				$if kwargs['int_controlled']:
+					<input type="radio" name="int_controlled" value='on' checked><b>Interval Controlled</b></br>
+					<input type="radio" name="int_controlled" value=''><b>Not Interval Controlled</b></br>
+				$else:
+					<input type="radio" name="int_controlled" value='on'><b>Interval Controlled</b></br>
+					<input type="radio" name="int_controlled" value='' checked><b>Not Interval Controlled</b></br>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
-				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td><td><b>Lag</b></td><td><b>Adj Phase</b></td></tr>
+				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td><td><b>Ends With</b></td></tr>
 			$for index, p in zip(range(num_phases), map(str, range(1, 1 + num_phases))):
-				$ yar = p + 'yar'
-				$ fdw = p + 'fdw'
-				$ dir = p + 'dir'
-				$ road = p + 'road'
-				$ grade = p + 'grade'
-				$ speed = p + 'speed'
-				$ lag = p + 'lag'
+				$ yar, fdw, dir, road, grade, speed, end = [p + suffix for suffix in ['yar', 'fdw', 'dir', 'road', 'grade', 'speed', 'end']]
 				<tr>
 				<tr>
 					<td><strong>Phase $p</strong></td>
 					<td>
-						<button type='button' onclick="updateForm('yar', $index, '$p')">Set YAR (ft)</button>
+						<button type='button' onclick="updateForm('yar', $index, '$p')">Set AR (ft)</button>
 						<b id='$yar'>$kwargs['yar_len'].split(';')[index]'</b>
 					</td>
 					<td>
-						<button type='button' onclick="updateForm('fdw', $index, '$p')">Set FDW (ft)</button>
+						<button type='button' onclick="updateForm('fdw', $index, '$p')">Set PCT (ft)</button>
 						<b id='$fdw'>$kwargs['fdw_len'].split(';')[index]'</b>
 					</td>
 					<td>
@@ -354,13 +340,8 @@ $ num_phases = 8
 					<td><input type='text' id='$dir' size='2' placeholder='Dir' maxlength=4 value='$kwargs['dir'].split(';')[index]' onBlur="updateTextBox('dir', $index, '$p')" /></td>
 					<td><input type='text' id='$road' size='15' placeholder='Road Name' value='$kwargs['road'].split(';')[index]' onBlur="updateTextBox('road', $index, '$p')" /></td>
 					<td><input type='text' id='$grade' size='5' placeholder='Grade (%)' value='$kwargs['grade'].split(';')[index]' onBlur="updateTextBox('grade', $index, '$p')" /></td>
-					<td><input type='text' id='$speed' size='5' id='$speed' placeholder='MPH' value='$kwargs['speed'].split(';')[index]' onBlur="updateTextBox('speed', $index, '$p')" /></td>
-				$if kwargs['lag'].split(';')[index]=='':
-					<td><input type=checkbox onClick="disableBox($index, '$p')" /></td>
-					<td><input type='text' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$kwargs['lag'].split(';')[index]' disabled='disabled' onBlur="updateTextBox('lag', $index, '$p')" /></td>
-				$else:
-					<td><input type=checkbox onClick="disableBox($index, '$p')" checked /></td>
-					<td><input type='text' id='$lag' size='2' placeholder='&Oslash' maxlength=2 value='$kwargs['lag'].split(';')[index]' onBlur="updateTextBox('lag', $index, '$p')" /></td>
+					<td><input type='text' id='$speed' size='2' placeholder='MPH' maxlength=3 value='$kwargs['speed'].split(';')[index]' onBlur="updateTextBox('speed', $index, '$p')" /></td>
+					<td><input type='text' id='$end' size='2' placeholder='&Oslash' value='$kwargs['end'].split(';')[index]' onBlur="updateTextBox('end', $index, '$p')" /></td>
 				</tr>
 			</table>
 			<input type='submit' value='Update Phasing Information' />

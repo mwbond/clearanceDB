@@ -27,22 +27,26 @@ $ num_phases = 8
 				zoomControl: false
 			};
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[0]', '#ff0000', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[0]', '#ff4d4d', 1);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[1]', '#008080', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[1]', '#00f7f7', 1);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[2]', '#ffff00', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[2]', '#ffff99', 1);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[3]', '#ff4500', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[3]', '#99ff00', 1);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[4]', '#8f5e99', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[4]', '#b28db9', 1);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[5]', '#008000', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[5]', '#00f700', 1);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[6]', '#0000ff', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[6]', '#9999ff', 1);
-			yar_length = drawLine('$kwargs['yar_line'].split(';')[7]', '#8b5a2b', 0);
-			fdw_length = drawLine('$kwargs['fdw_line'].split(';')[7]', '#c98c52', 1);
+		$ yar_line = kwargs['yar_line'].split(';')
+		$ fdw_line = kwargs['fdw_line'].split(';')
+		$for phase in range(num_phases):
+			drawLine('$yar_line[phase]', getColor($phase), 0);
+			drawLine('$fdw_line[phase]', getColor($phase + 1), 1);
+		}
+
+		function getColor(val)
+		{
+			var r = Math.floor(Math.sin(2.4 * val) * 127 + 128) % 256;
+			r = r.toString(16);
+			r = r.length==1 ? '0' + r : r;
+			var g = Math.floor(Math.sin(2.4 * val + 2) * 127 + 128) % 256;
+			g = g.toString(16);
+			g = g.length==1 ? '0' + g : g;
+			var b = Math.floor(Math.sin(2.4 * val + 4) * 127 + 128) % 256;
+			b = b.toString(16);
+			b = b.length==1 ? '0' + b : b;
+			var hex = "#" + r + g + b;
+			return hex;
 		}
 
 		function drawLine(latlng_txt, color, center)
