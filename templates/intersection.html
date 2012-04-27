@@ -165,9 +165,9 @@ $ num_phases = 8
 			var len = document.getElementById(elem_id + '_len');
 			if(length == '0')
 			{
-				txt.innerHTML = '\'';
-				line.value = '';
-				len.value = '';
+				txt.innerHTML = '-';
+				line.value = editList(line.value, index, '');
+				len.value = editList(len.value, index, '');
 			}
 			else
 			{
@@ -325,11 +325,17 @@ $ num_phases = 8
 					<td><strong>Phase $p</strong></td>
 					<td>
 						<button type='button' onclick="updateForm('yar', $index, '$p')">Set AR (ft)</button>
+					$if kwargs['yar_len'].split(';')[index]:
 						<b id='$yar'>$kwargs['yar_len'].split(';')[index]'</b>
+					$else:
+						<b id='$yar'>--</b>
 					</td>
 					<td>
 						<button type='button' onclick="updateForm('fdw', $index, '$p')">Set PCT (ft)</button>
+					$if kwargs['fdw_len'].split(';')[index]:
 						<b id='$fdw'>$kwargs['fdw_len'].split(';')[index]'</b>
+					$else:
+						<b id='$fdw'>--</b>
 					</td>
 					<td>
 						$if kwargs['mov'].split(';')[index]=='':
