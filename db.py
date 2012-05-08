@@ -1,4 +1,36 @@
+import os
+import sqlite3
 import web
+
+num_phases = 8
+
+if not os.path.isfile('intersection_db'):
+	default = "'" + (num_phases - 1) * ';' + "'"
+	conn = sqlite3.connect('intersection_db')
+	c = conn.cursor()
+	command = '''create table intersection
+				(int_id text,
+				location text default '',
+				map_lat text default '',
+				map_lng text default '',
+				map_zoom text default '',
+				major text default '',
+				minor text default '',
+				int_controlled text default '',
+				yar_line default $,
+				fdw_line default $,
+				mov default $,
+				road default $,
+				grade default $,
+				speed default $,
+				dir default $,
+				yar_len default $,
+				fdw_len default $,
+				min_walk default $,
+				end default $)'''
+	c.execute(command.replace('$', default))
+	conn.commit()
+	c.close()
 
 DB = web.database(dbn='sqlite', db='intersection_db')
 
