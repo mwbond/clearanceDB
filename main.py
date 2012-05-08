@@ -31,8 +31,6 @@ class home:
 		reader = csv.reader(cStringIO.StringIO(layout_txt))
 		nodes, lanes, links, phases = {}, {}, {}, {}
 		heading = ''
-		dirs = []
-		phase_headings = []
 		for row in reader:
 			try:
 				if len(row)==0:
@@ -41,86 +39,113 @@ class home:
 					heading = row[0][1:-1]
 				elif heading=='Nodes' and row[1]=='0':
 					nodes[row[0]] = {'int_id': row[0]}
-					lanes[row[0]] = [''] * 4
+					links[row[0]] = []
+					lanes[row[0]] = {'speed': [], 'grade': [], 'phase': [], 'peds': []}
+					phases[row[0]] = []
 				elif heading=='Links':
 					if row[0]=='RECORDNAME':
-						dirs = row[2:]
+						links['col'] = row[2:]
 					elif row[0]=='Name' and row[1] in nodes.keys():
-						names = row[2:]
-						names.extend(['']*(len(dirs)-len(names)))
-						links[row[1]] = dict(zip(dirs, names))
-						names = list(set(names))
-						if '' in names:
-							names.remove('')
-						if len(names) > 1:
-							nodes[row[1]]['minor'] = names[1]
-						if len(names) > 0:
-							nodes[row[1]]['major'] = names[0]
+						links[row[1]] = row[2:]
 				elif heading=='Lanes':
 					if row[0]=='RECORDNAME':
-						dirs = [dir for dir in row[2:] if dir[0] in ['N', 'S', 'E', 'W']]
-					if row[1] not in lanes.keys():
+						lanes['col'] = row[2:]
+					elif row[1] not in lanes.keys():
 						continue
-					if row[0]=='Speed':
-						lanes[row[1]][0] = row[2:][:len(dirs)]
+					elif row[0]=='Speed':
+						lanes[row[1]]['speed'] = row[2:]
 					elif row[0]=='Grade':
-						lanes[row[1]][1] = row[2:][:len(dirs)]
+						lanes[row[1]]['grade'] = row[2:]
 					elif row[0]=='Phase1':
-						lanes[row[1]][2] = row[2:][:len(dirs)]
+						lanes[row[1]]['phase'] = row[2:]
 					elif row[0]=='Peds':
-						lanes[row[1]][3] = row[2:][:len(dirs)]
-				'''elif heading=='Phases':
+						lanes[row[1]]['peds'] = row[2:]
+				elif heading=='Phases':
 					if row[0]=='RECORDNAME':
-						phase_headings = [p[1:] for p in row[2:]]
-					elif row[0]=='BRP':
-						phases[row[1]] = row[2:][:phase_headings]'''
+						phases['col'] = [p[1:] for p in row[2:]]
+					elif row[0]=='BRP' and row[1] in phases.keys():
+						phases[row[1]] = row[2:]
 			except IndexError:
 				pass
-		for key in nodes.keys():
-			phase_info = [[''] * num_phases,
-						[''] * num_phases,
-						[''] * num_phases,
-						[''] * num_phases,
-						[''] * num_phases,
-						[''] * num_phases]
-			speeds, grades, phases, peds = lanes[key]
-			speeds.extend(['']*(len(phases)-len(speeds)))
-			grades.extend(['']*(len(phases)-len(grades)))
-			peds.extend(['']*(len(phases)-len(peds)))
-			for index in range(len(phases)):
-				phase = phases[index]
-				if phase=='':
-					continue
+		lanes_mod = {}
+		for int_id in nodes.keys():
+			if int_id == 'col':
+				continue
+			matrix = []
+			str_phases = map(str, range(1, num_phases + 1))
+			brp = list(set(phases[int_id]))
+			if '' in brp:
+				brp.remove('')
+			brp.sort()
+			maxes, phase_maxes = [], []
+			for index in range(len(brp)):
+				if len(brp) == index + 1:
+					maxes.append(brp[index])
+				elif brp[index][:2] != brp[index + 1][:2]:
+					maxes.append(brp[index])
+			for index in range(len(maxes)):
+				phase = phases['col'][phases[int_id].index(maxes[index])]
+				if phase in lanes[int_id]['phase']:
+					phase_maxes.append(phase)
+				else:
+					phase_maxes.append('')
+
+			for index in range(len(lanes[int_id]['phase'])):
+				phase = lanes[int_id]['phase'][index]
+				dirs = lanes['col'][index]
+				speed = lanes[int_id]['speed'][index]
+				grade = lanes[int_id]['grade'][index]
+				peds = lanes[int_id]['peds'][index]
 				mov = ''
-				speed = speeds[index] or '0'
-				if 'L' in dirs[index]:
+				speed = speed or '0'
+				grade = grade or '0'
+				if 'L' in dirs:
 					mov = 'on'
 					speed = '20'
-				grade = grades[index] or '0'
-				ped = peds[index] or '0'
-				if int(ped) < 1000:
+				peds = peds or '10'
+				if int(peds) < 1000:
 					walk = '7'
+				if dirs[:2] in links['col']:
+					i = links['col'].index(dirs[:2])
+					road = links[int_id][i]
 				else:
-					walk = '10'
-				phase = int(phase)
-				try:
-					phase_info[0][phase - 1] = speed
-					phase_info[1][phase - 1] = grade
-					phase_info[2][phase - 1] = walk
-					phase_info[3][phase - 1] = dirs[index]
-					phase_info[4][phase - 1] = mov
-					if dirs[index][:2] in links[key].keys():
-						phase_info[5][phase - 1] = links[key][dirs[index][:2]]
+					road = ''
+				end = []
+				if phase in phase_maxes:
+					barrier = maxes[phase_maxes.index(phase)][0]
+					print barrier
+					for brp in maxes:
+						if brp[0] == barrier:
+							p = phase_maxes[maxes.index(brp)]
+							if p and p != phase and int(p) > 0 and int(p) <= num_phases:
+								end.append(p)
+				end = ','.join(end)
 
-				except IndexError:
-					pass
-			nodes[key]['speed'] = ';'.join(phase_info[0])
-			nodes[key]['grade'] = ';'.join(phase_info[1])
-			nodes[key]['min_walk'] = ';'.join(phase_info[2])
-			nodes[key]['dir'] = ';'.join(phase_info[3])
-			nodes[key]['mov'] = ';'.join(phase_info[4])
-			nodes[key]['road'] = ';'.join(phase_info[5])
-			db.modify(**nodes[key])
+				if phase in str_phases:
+					matrix.append([phase, dirs, speed, grade, peds, mov, road, end])
+					str_phases.pop(str_phases.index(phase))
+			for phase in str_phases:
+				matrix.append([phase] + [''] * 7)
+			matrix.sort(key=lambda x: x[0])
+			lanes_mod[int_id] = zip(*matrix)
+
+		for int_id in nodes.keys():
+			nodes[int_id]['dir'] = ';'.join(lanes_mod[int_id][1])
+			nodes[int_id]['speed'] = ';'.join(lanes_mod[int_id][2])
+			nodes[int_id]['grade'] = ';'.join(lanes_mod[int_id][3])
+			nodes[int_id]['min_walk'] = ';'.join(lanes_mod[int_id][4])
+			nodes[int_id]['mov'] = ';'.join(lanes_mod[int_id][5])
+			nodes[int_id]['road'] = ';'.join(lanes_mod[int_id][6])
+			nodes[int_id]['end'] = ';'.join(lanes_mod[int_id][7])
+
+			names = list(set(links[int_id]))
+			if '' in names:
+				names.remove('')
+				if len(names) > 1:
+					nodes[int_id]['minor'] = names[1]
+				if len(names) > 0:
+					nodes[int_id]['major'] = names[0]
+			db.modify(**nodes[int_id])
 		raise web.seeother('/')
 
 class update_location:
@@ -158,22 +183,18 @@ class add_entry:
 
 class output:
 	def calcYAR(self, kwargs):
-		end = []
 		timings = []
 		yar_len = kwargs['yar_len'].split(';')
 		speeds = kwargs['speed'].split(';')
 		grades = kwargs['grade'].split(';')
 		movements = kwargs['mov'].split(';')
-		adjacents = kwargs['end'].split(';')
+		end = kwargs['end'].split(';')
 		int_controlled = kwargs['int_controlled']
 		for index in range(num_phases):
 			length = int(yar_len[index] or 0)
 			speed = int(speeds[index] or 0)
 			grade = float(grades[index] or 0)
 			turn = movements[index]
-			adj = adjacents[index]
-			if adj:
-				end.append([index, int(adj) - 1])
 
 			div = 2.0
 			if int_controlled:
@@ -209,12 +230,21 @@ class output:
 			red = str(red_r / 1.0)
 			timings.append([yellow, red, '', '', ''])
 
-		for index, adj in end:
-			y1, r1 = timings[index][:2]
-			y2, r2 = timings[adj][:2]
-			if y1 != '-' and y2 != '-':
-				timings[index][:2] = max(y1, y2), max(r1, r2)
-				timings[adj][:2] = max(y1, y2), max(r1, r2)
+		for index in range(num_phases):
+			if end[index]:
+				ends_with = [index]
+				y = [timings[index][0]]
+				r = [timings[index][1]]
+				for phase in end[index].split(','):
+					p = int(phase) - 1
+					if timings[int(phase) - 1][0] != '-':
+						y.append(timings[p - 1][0])
+						r.append(timings[p - 1][1])
+						ends_with.append(p - 1)
+				max_y = max(y)
+				max_r = max(r)
+				for index in ends_with:
+					timings[index][:2] = max_y, max_r
 		return timings
 	def calcPed(self, kwargs, timings):
 		fdw_len = kwargs['fdw_len'].split(';')

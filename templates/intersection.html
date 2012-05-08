@@ -243,16 +243,23 @@ $ num_phases = 8
 
 			else if(elem_id=='end')
 			{
-				if(p!=value)
+				var ends = value.split(',');
+				var index;
+				for(index = 0; index < ends.length; index++)
 				{
-					num = parseFloat(value);
-					if((num % 1)==0)
+					if(p!=ends[index])
 					{
-						num = parseInt(num);
-						if(num >= 1 && num <= 8 && num.toString()==value)
-							return true;
+						num = parseFloat(ends[index]);
+						if((num % 1)==0)
+						{
+							num = parseInt(num);
+							if(num >= 1 && num <= $num_phases && num.toString()==ends[index])
+								continue;
+						}
 					}
+					return false;
 				}
+				return true;
 			}
 
 			else
