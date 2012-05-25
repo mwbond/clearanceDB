@@ -34,6 +34,7 @@ if not os.path.isfile('intersection_db'):
 
 DB = web.database(dbn='sqlite', db='intersection_db')
 
+# Returns number of entries with int_id
 def entry_exists(int_id='0'):
 	query_cmd = 'SELECT COUNT(*) AS id_matches FROM intersection WHERE int_id=$int_id'
 	results = DB.query(query_cmd, vars={'int_id':int_id})	
@@ -69,15 +70,20 @@ def get_info(int_id='0'):
 
 # Edits existing entries if ID is in DB, otherwise creates an entry
 # with the default location. If no ID is given, the location is changed for the
-# entire DB EDIT
+# entire DB
 def modify(**kwargs):
-	if 'int_id' in kwargs:
-		int_id = kwargs.pop('int_id')
-		if entry_exists(int_id):
-			DB.update('intersection', where='int_id=$int_id', vars={'int_id':int_id}, **kwargs)
-		else:
-			loc = get_info()['location']
-			kwargs.update({'int_id':int_id, 'location':loc})
-			DB.insert('intersection', **kwargs)
-	elif 'location' in kwargs:
-		DB.update('intersection', where='1=1', location=kwargs['location'])
+	try:
+		if 'int_id' in kwargs:
+			int_id = kwargs.pop('int_id')
+			if entry_exists(int_id):
+				DB.update('intersection', where='int_id=$int_id', vars={'int_id':int_id}, **kwargs)
+			else:
+				loc = get_info()['location']
+				kwargs.update({'int_id':int_id, 'location':loc})
+				DB.insert('intersection', **kwargs)
+		elif 'location' in kwargs:
+			DB.update('intersection', where='1=1', location=kwargs['location'])
+	except TypeError:
+		print('Object passed to db.modify was not **dict')
+	except sqlite3.OperationalError:
+		print('Dictionary passed to db.modify had a key that was not a column in the DB')

@@ -5,7 +5,7 @@ from math import ceil
 
 import db
 
-num_phases = 8
+num_phases = db.num_phases
 
 urls = ('/', 'home',
 		'/update_location', 'update_location',
@@ -20,10 +20,8 @@ urls = ('/', 'home',
 class home:
 	def GET(self):
 		render = web.template.render('templates')
-		location = db.get_info()['location']
-		if location:
-			return render.home(location)
-		return render.home('Unknown')
+		location = db.get_info()['location'] or 'Unknown'
+		return render.home(location)
 	def POST(self):
 		db_info = []
 		form = web.input()
@@ -165,7 +163,6 @@ class intersection:
 		int_id = web.input().IntID
 		kwargs = db.get_info(int_id)
 		location = db.get_info()['location']
-		print kwargs
 		render = web.template.render('templates', globals={'map': map, 'str': str, 'zip': zip})
 		return render.intersection(kwargs, location)
 
@@ -192,6 +189,9 @@ class output:
 		int_controlled = kwargs['int_controlled']
 		for index in range(num_phases):
 			length = int(yar_len[index] or 0)
+			if length == 0:
+				timings.append(['-', '-', '', '', '-', '-', '', ''])
+				continue
 			speed = int(speeds[index] or 0)
 			grade = float(grades[index] or 0)
 			turn = movements[index]
@@ -200,27 +200,29 @@ class output:
 			if int_controlled:
 				div = 1.0
 			if (length==0) or (speed==0):
-				timings.append(['-', '-', '', '', ''])
+				timings.append(['-', '-', '', '', '-', '-', '', ''])
 				continue
 			if turn:
 				min_r = 0.5
+				max_r = 1.0
 				y_speed = 20.0
 				r_speed = 1.47 * 20.0
 			else:
 				min_r = 1.0
+				max_r = 3.0
 				y_speed = speed + 5.0
-				r_speed = 1.47 * speed
+				r_speed = 1.47 * y_speed
 
 			yellow_c = 1 + (0.733 * y_speed)/(10.0 + (0.32 * grade))
-			yellow_r = ceil(div * yellow_c)/div
+			yellow_r = round(div * yellow_c)/div
 			yellow_c = round(yellow_c, 1)
 			red_c = length / r_speed
-			red_r = ceil(div * red_c) / div
+			red_r = round(div * red_c) / div
 			red_c = round(red_c, 1)
 
 			yellow_r = min(yellow_r, 6)
 			yellow_r = max(yellow_r, 4)
-			red_r = min(red_r, 3)
+			red_r = min(red_r, max_r)
 			red_r = max(red_r, min_r)
 			diff = yellow_c + red_c - yellow_r - red_r
 			diff = ceil(div * diff) / div
@@ -228,7 +230,7 @@ class output:
 				yellow_r = yellow_r + diff
 			yellow = str(yellow_r / 1.0)
 			red = str(red_r / 1.0)
-			timings.append([yellow, red, '', '', ''])
+			timings.append([yellow, red, '', '', str(yellow_c), str(red_c), '', ''])
 
 		for index in range(num_phases):
 			if end[index]:
@@ -237,14 +239,14 @@ class output:
 				r = [timings[index][1]]
 				for phase in end[index].split(','):
 					p = int(phase) - 1
-					if timings[int(phase) - 1][0] != '-':
-						y.append(timings[p - 1][0])
-						r.append(timings[p - 1][1])
-						ends_with.append(p - 1)
+					if timings[p][0] != '-':
+						y.append(timings[p][0])
+						r.append(timings[p][1])
+						ends_with.append(p)
 				max_y = max(y)
 				max_r = max(r)
-				for index in ends_with:
-					timings[index][:2] = max_y, max_r
+				for index2 in ends_with:
+					timings[index2][:2] = max_y, max_r
 		return timings
 	def calcPed(self, kwargs, timings):
 		fdw_len = kwargs['fdw_len'].split(';')
@@ -254,7 +256,8 @@ class output:
 			length = int(fdw_len[index] or 0)
 			min_walk = float(min_walks[index] or 7)
 			if length==0:
-				timings[index][2:] = '-', '-', '-'
+				timings[index][2:4] = '-', '-'
+				timings[index][6:8] = '-', '-'
 				continue
 			if red=='-':
 				red = 0
@@ -262,10 +265,10 @@ class output:
 				yellow = 0
 			pct = length / 3.5
 			walk = round(max((length + 6) / 3.0 - pct, min_walk))
-			fdw = pct - float(yellow) - float(red)
-			pct = round(pct)
-			fdw = round(max(4.0, fdw))
-			timings[index][2:] = walk, pct, fdw
+			fdw_c = pct - float(yellow) - float(red)
+			fdw = ceil(max(4.0, fdw_c))
+			timings[index][2:4] = walk, fdw
+			timings[index][6:8] = round(pct, 1), round(fdw_c, 1)
 	def GET(self):
 		int_id = web.input().IntID
 		kwargs = db.get_info(int_id)
@@ -280,10 +283,6 @@ class batch_process:
 		if form['process'] == 'Delete Intersections':
 			for int_id in form['IntID']:
 				db.delete_id(int_id)
-		elif form['process'] == 'Create PDFs':
-			print 'PDF'
-			for int_id in form['IntID']:
-				print int_id
 		raise web.seeother('/overview')
 
 class redirect:

@@ -72,7 +72,7 @@ $ num_phases = 8
 				var position = path.getAt(0);
 			}
 			var length = google.maps.geometry.spherical.computeLength(path) * 3.28;
-			var txt_length = length.toFixed(0).toString() + "\'";
+			var txt_length = Math.ceil(length).toString() + "\'";
 			var text = new textOverlay(position, txt_length, map);
 			line.setMap(map);
 			var poly = new google.maps.Polyline(polyOptions);
@@ -133,6 +133,7 @@ $ num_phases = 8
 </head>
 <body onload='initialize()'>
 	<a href='http://localhost:8080'>Go Home</a>
+	<a href='http://localhost:8080/intersection?IntID=$kwargs['int_id']'>Goto Input</a>
 	<br>
 	<div style='text-align:center'>
 		<b style='font-size:36px'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</b>
@@ -152,6 +153,42 @@ $ num_phases = 8
 					<td style='text-align:left'>$road</td>
 				</tr>
 		</table>
+		<b>CALCULATED VALUES</b>
+		<table style='margin:auto;font-size:20px' border='1'>
+			<col />
+			$for index in range(num_phases):
+				<col width='50' />
+			<tr>
+				<td />
+				<td colspan='8'><b>PHASE NUMBER</b></td>
+			<tr>
+				<td />
+				$for index in range(num_phases):
+					$ phase = index + 1
+					<td><b>$phase</b></td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>Yellow (Y)</b></td>
+				$for index in range(num_phases):
+					<td>$timings[index][4]</td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>All-Red (AR)</b></td>
+				$for index in range(num_phases):
+					<td>$timings[index][5]</td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>Walk</b></td>
+				$for index in range(num_phases):
+					<td>$timings[index][6]</td>
+			</tr>
+			<tr>
+				<td style='text-align:right'><b>Flash Don't Walk (FDW)</b></td>
+				$for index in range(num_phases):
+					<td>$timings[index][7]</td>
+			</tr>
+		</table>
+		<b>RECOMMENDED VALUES</b>
 		<table style='margin:auto;font-size:20px' border='1'>
 			<col />
 			$for index in range(num_phases):
@@ -176,21 +213,17 @@ $ num_phases = 8
 					<td>$timings[index][1]</td>
 			</tr>
 			<tr>
-				<td style='text-align:right'><b>Walk</b></td>
+				<td style='text-align:right'><b>Ped Clearance Time (PCT)</b></td>
 				$for index in range(num_phases):
 					<td>$timings[index][2]</td>
 			</tr>
 			<tr>
-				<td style='text-align:right'><b>Ped Crossing Time (PCT)</b></td>
+				<td style='text-align:right'><b>Flash Don't Walk (FDW)</b></td>
 				$for index in range(num_phases):
 					<td>$timings[index][3]</td>
 			</tr>
-			<tr>
-				<td style='text-align:right'><b>Flash Don't Walk (FDW)</b></td>
-				$for index in range(num_phases):
-					<td>$timings[index][4]</td>
-			</tr>
 		</table>
+		Page 1 of 2
 	</div>
 </body>
 </html>

@@ -23,7 +23,9 @@ $ num_phases = 8
 		function initialize()
 		{
 			initOptions = {
-				mapTypeId: google.maps.MapTypeId.HYBRID
+				mapTypeId: google.maps.MapTypeId.HYBRID,
+				draggableCursor: 'crosshair',
+				draggingCursor: 'crosshair'
 			};
 			
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
@@ -118,12 +120,18 @@ $ num_phases = 8
 				draggable: true,
 				raiseOnDrag: false,
 				title: "Drag me to change shape",
-				icon: new google.maps.MarkerImage("/static/measure-vertex.png", new google.maps.Size(9, 9), new google.maps.Point(0, 0), new google.maps.Point(5, 5))
+				icon: new google.maps.MarkerImage("/static/measure-vertex.png", new google.maps.Size(9, 9), new google.maps.Point(0, 0), new google.maps.Point(5, 5)),
+				cursor: 'crosshair',
 			});
 
 			measure.mvcMarkers.push(marker);
 			measure.mvcLine.push(latlng);
 			index = measure.mvcLine.getLength() - 1;
+
+			google.maps.event.addListener(marker, "cursor_changed", function()
+			{
+				document.write('hellow');
+			});
 
 			google.maps.event.addListener(marker, "mouseover", function()
 			{
@@ -134,6 +142,7 @@ $ num_phases = 8
 				marker.setIcon(new google.maps.MarkerImage("/static/measure-vertex.png", new google.maps.Size(9, 9), new google.maps.Point(0, 0), new google.maps.Point(5, 5)));
 			});
 			google.maps.event.addListener(marker, "drag", function(event) {measure.mvcLine.setAt(index, event.latLng);});
+				
 			google.maps.event.addListener(marker, "dragend", function()
 			{
 				if (measure.mvcLine.getLength() > 1)
@@ -318,13 +327,13 @@ $ num_phases = 8
 			<input type='hidden' id='end'		name='end'		value='$kwargs['end']' />
 			<table>
 				$if kwargs['int_controlled']:
-					<input type="radio" name="int_controlled" value='on' checked><b>Interval Controlled</b></br>
-					<input type="radio" name="int_controlled" value=''><b>Not Interval Controlled</b></br>
+					<input type="radio" name="int_controlled" value='on' checked><b>Interval Controller</b></br>
+					<input type="radio" name="int_controlled" value=''><b>Phase Controller</b></br>
 				$else:
-					<input type="radio" name="int_controlled" value='on'><b>Interval Controlled</b></br>
-					<input type="radio" name="int_controlled" value='' checked><b>Not Interval Controlled</b></br>
+					<input type="radio" name="int_controlled" value='on'><b>Interval Controller</b></br>
+					<input type="radio" name="int_controlled" value='' checked><b>Phase Controller</b></br>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
-				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Speed</b></td><td><b>Ends With</b></td></tr>
+				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Posted Speed</b></td><td><b>Ends With</b></td></tr>
 			$for index, p in zip(range(num_phases), map(str, range(1, 1 + num_phases))):
 				$ yar, fdw, dir, road, grade, speed, end = [p + suffix for suffix in ['yar', 'fdw', 'dir', 'road', 'grade', 'speed', 'end']]
 				<tr>
@@ -353,7 +362,7 @@ $ num_phases = 8
 					<td><input type='text' id='$dir' size='2' placeholder='Dir' maxlength=4 value='$kwargs['dir'].split(';')[index]' onBlur="updateTextBox('dir', $index, '$p')" /></td>
 					<td><input type='text' id='$road' size='15' placeholder='Road Name' value='$kwargs['road'].split(';')[index]' onBlur="updateTextBox('road', $index, '$p')" /></td>
 					<td><input type='text' id='$grade' size='5' placeholder='Grade (%)' value='$kwargs['grade'].split(';')[index]' onBlur="updateTextBox('grade', $index, '$p')" /></td>
-					<td><input type='text' id='$speed' size='2' placeholder='MPH' maxlength=3 value='$kwargs['speed'].split(';')[index]' onBlur="updateTextBox('speed', $index, '$p')" /></td>
+					<td><input type='text' id='$speed' size='8' placeholder='MPH' maxlength=3 value='$kwargs['speed'].split(';')[index]' onBlur="updateTextBox('speed', $index, '$p')" /></td>
 					<td><input type='text' id='$end' size='2' placeholder='&Oslash' value='$kwargs['end'].split(';')[index]' onBlur="updateTextBox('end', $index, '$p')" /></td>
 				</tr>
 			</table>
@@ -362,6 +371,7 @@ $ num_phases = 8
 		</form>
 		<form name='phase_info' method='POST' action='update_intersection'>
 		</form>
+		Page 2 of 2
 		</div>
 	</div>
 </body>
