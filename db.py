@@ -1,3 +1,4 @@
+# Matthew Bond
 import os
 import sqlite3
 import web
@@ -27,6 +28,7 @@ if not os.path.isfile('intersection_db'):
 				yar_len default $,
 				fdw_len default $,
 				min_walk default $,
+				fdw default $,
 				end default $)'''
 	c.execute(command.replace('$', default))
 	conn.commit()

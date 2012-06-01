@@ -1,5 +1,6 @@
 $def with (kwargs, timings)
 $ num_phases = 8
+<!--Matthew Bond-->
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -21,12 +22,14 @@ $ num_phases = 8
 				mapTypeControl: false,
 				mapTypeId: google.maps.MapTypeId.HYBRID,
 				panControl: false,
+				rotateControl: true,
 				scrollwheel: false,
 				streetViewControl: false,
 				zoom: $kwargs['map_zoom'],
 				zoomControl: false
 			};
 			map = new google.maps.Map(document.getElementById('map_canvas'), initOptions);
+			google.maps.event.addListener(map, 'tilesloaded', drawNorthArrow());
 		$ yar_line = kwargs['yar_line'].split(';')
 		$ fdw_line = kwargs['fdw_line'].split(';')
 		$for phase in range(num_phases):
@@ -34,6 +37,16 @@ $ num_phases = 8
 			drawLine('$fdw_line[phase]', getColor($phase + 1), 1);
 		}
 
+		function drawNorthArrow()
+		{
+			var ne_latlng = map.getBounds().getNorthEast();
+			var sw_latlng = map.getBounds().getSouthWest();
+			var lat = google.maps.geometry.spherical.interpolate(ne_latlng, sw_latlng, 0.2).lat();
+			var lng = google.maps.geometry.spherical.interpolate(ne_latlng, sw_latlng, 0.1).lng();
+			var bounds = google.maps.LatLngBounds(google.maps.LatLng(lat, lng), ne_latlng);
+			var overlay = google.maps.GroundOverlay('/static/north.png', bounds);
+			overlay.setMap(map);
+		}
 		function getColor(val)
 		{
 			var r = Math.floor(Math.sin(2.4 * val) * 127 + 128) % 256;
@@ -132,8 +145,8 @@ $ num_phases = 8
 	</script>
 </head>
 <body onload='initialize()'>
-	<a href='http://localhost:8080'>Go Home</a>
-	<a href='http://localhost:8080/intersection?IntID=$kwargs['int_id']'>Goto Input</a>
+	<a href='/'>Go Home</a>
+	<a href='/intersection?IntID=$kwargs['int_id']'>Goto Input</a>
 	<br>
 	<div style='text-align:center'>
 		<b style='font-size:36px'>$kwargs['int_id'] - $kwargs['major'] and $kwargs['minor']</b>
@@ -153,6 +166,9 @@ $ num_phases = 8
 					<td style='text-align:left'>$road</td>
 				</tr>
 		</table>
+		Page 1 of 3
+		</br>
+		</br>
 		<b>CALCULATED VALUES</b>
 		<table style='margin:auto;font-size:20px' border='1'>
 			<col />
@@ -178,7 +194,7 @@ $ num_phases = 8
 					<td>$timings[index][5]</td>
 			</tr>
 			<tr>
-				<td style='text-align:right'><b>Walk</b></td>
+				<td style='text-align:right'><b>Ped Clearance Time (PCT)</b></td>
 				$for index in range(num_phases):
 					<td>$timings[index][6]</td>
 			</tr>
@@ -213,7 +229,7 @@ $ num_phases = 8
 					<td>$timings[index][1]</td>
 			</tr>
 			<tr>
-				<td style='text-align:right'><b>Ped Clearance Time (PCT)</b></td>
+				<td style='text-align:right'><b>Walk</b></td>
 				$for index in range(num_phases):
 					<td>$timings[index][2]</td>
 			</tr>
@@ -223,7 +239,7 @@ $ num_phases = 8
 					<td>$timings[index][3]</td>
 			</tr>
 		</table>
-		Page 1 of 2
+		Page 2 of 3
 	</div>
 </body>
 </html>

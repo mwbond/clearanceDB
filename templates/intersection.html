@@ -1,4 +1,5 @@
 $def with (kwargs, location)
+<!--Matthew Bond-->
 $ num_phases = 8
 <!DOCTYPE HTML>
 <html>
@@ -169,12 +170,12 @@ $ num_phases = 8
 		function updateForm(elem_id, index, p)
 		{
 			var length = measure.lineLength;
-			var txt = document.getElementById(p + elem_id);
+			var textbox = document.getElementById(p + elem_id + '_len');
 			var line = document.getElementById(elem_id + '_line');
 			var len = document.getElementById(elem_id + '_len');
 			if(length == '0')
 			{
-				txt.innerHTML = '-';
+				textbox.value = '';
 				line.value = editList(line.value, index, '');
 				len.value = editList(len.value, index, '');
 			}
@@ -182,7 +183,7 @@ $ num_phases = 8
 			{
 				var latlng1 = measure.mvcLine.getAt(0).toString();
 				var latlng2 = measure.mvcLine.getAt(1).toString();
-				txt.innerHTML = length + '\'';
+				textbox.value = length;
 				line.value = editList(line.value, index, latlng1 + '+' + latlng2);
 				len.value = editList(len.value, index, length);
 			}
@@ -207,15 +208,17 @@ $ num_phases = 8
 		function updateMov(index, p)
 		{
 			var mov = document.getElementById('mov');
-			var speed = document.getElementById(p + 'speed');
-			if(mov.value.split(';')[index])
-				mov.value = editList(mov.value, index, '');
-			else
+			var pmov = document.getElementById(p + 'mov');
+			var speed = document.getElementById('speed');
+			var pspeed = document.getElementById(p + 'speed');
+			if(pmov.checked)
 			{
 				mov.value = editList(mov.value, index, 'on');
-				if(speed.value)
-					speed.value = 20;
+				speed.value = editList(speed.value, index, '20');
+				pspeed.value = 20;
 			}
+			else
+				mov.value = editList(mov.value, index, '');
 		}
 
 		function editList(string, index, value)
@@ -225,7 +228,7 @@ $ num_phases = 8
 			return split.join(';');
 		}
 
-		function validate(elem_id, value, p)
+		function validate(elem_id, value)
 		{
 			if(value.indexOf(';') != -1)
 				return false;
@@ -256,24 +259,34 @@ $ num_phases = 8
 				var index;
 				for(index = 0; index < ends.length; index++)
 				{
-					if(p!=ends[index])
+					num = parseFloat(ends[index]);
+					if((num % 1)==0)
 					{
-						num = parseFloat(ends[index]);
-						if((num % 1)==0)
-						{
-							num = parseInt(num);
-							if(num >= 1 && num <= $num_phases && num.toString()==ends[index])
-								continue;
-						}
+						num = parseInt(num);
+						if(num >= 1 && num <= $num_phases && num.toString()==ends[index])
+							continue;
 					}
-					return false;
 				}
 				return true;
 			}
+			else if(elem_id=='yar_len' || elem_id=='fdw_len')
+			{
+				if(value =='')
+					return true;
+				if(!isNaN(value))
+				{
+					if(parseInt(value).toString()==value)
+						return true;
+				}
 
+			}
+			else if(elem_id=='min_walk')
+			{
+				if(value=='7' || value=='10')
+					return true;
+			}
 			else
 				return true;
-
 			return false;
 		}
 
@@ -281,7 +294,7 @@ $ num_phases = 8
 		{
 			var textbox = document.getElementById(p + elem_id);
 			var hidden = document.getElementById(elem_id);
-			if(validate(elem_id, textbox.value, p))
+			if(validate(elem_id, textbox.value))
 				hidden.value = editList(hidden.value, index, textbox.value);
 			else
 			{
@@ -296,8 +309,9 @@ $ num_phases = 8
 	<div id='wrapper' style='margin:0 auto; width:1500px'>
 		<div id='map_canvas' style='margin:0 auto; width:600px; height:600px; float:left'></div>
 		<div id='form' style='float:left'>
-		<a href='http://localhost:8080'>Go Home</a>
+		<a href='/'>Go Home</a>
 		<a href='/output?IntID=$kwargs['int_id']'>Goto Output</a>
+
 		<form name='int_info' method='POST' action='update_intersection'>
 			<table>
 				<tr><td><strong>Int ID:</strong></td><td><input type='text' name='int_id' size='4' value='$kwargs['int_id']' /></td></tr>
@@ -324,46 +338,52 @@ $ num_phases = 8
 			<input type='hidden' id='dir'		name='dir'		value='$kwargs['dir']' />
 			<input type='hidden' id='yar_len'	name='yar_len'	value='$kwargs['yar_len']' />
 			<input type='hidden' id='fdw_len'	name='fdw_len'	value='$kwargs['fdw_len']' />
+			<input type='hidden' id='fdw'		name='fdw'		value='$kwargs['fdw']' />
 			<input type='hidden' id='end'		name='end'		value='$kwargs['end']' />
 			<table>
+				<tr><td colspan='2'>
 				$if kwargs['int_controlled']:
 					<input type="radio" name="int_controlled" value='on' checked><b>Interval Controller</b></br>
 					<input type="radio" name="int_controlled" value=''><b>Phase Controller</b></br>
 				$else:
 					<input type="radio" name="int_controlled" value='on'><b>Interval Controller</b></br>
 					<input type="radio" name="int_controlled" value='' checked><b>Phase Controller</b></br>
+				</td>
+				<td>
+				$if kwargs['min_walk']=='10':
+					<input type="radio" name="min_walk" value='7'><b>7 Seconds Min Walk</b></br>
+					<input type="radio" name="min_walk" value='10' checked><b>10 Seconds Min Walk</b></br>
+				$else:
+					<input type="radio" name="min_walk" value='7' checked><b>7 Seconds Min Walk</b></br>
+					<input type="radio" name="min_walk" value='10'><b>10 Seconds Min Walk</b></br>
+				</tr>
 				<tr><td /><td colspan='5'>CURRENT MEASUREMENT: <strong id='measurement'>N/A</strong></td></tr>
-				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Posted Speed</b></td><td><b>Ends With</b></td></tr>
+				<tr style='text-align:center'><td /><td /><td /><td><b>Turn</b></td><td><b>Dir</b></td><td><b>Road Name</b></td><td><b>Grade</b></td><td><b>Posted Speed</b></td><td><b>Ends With</b></td><td><b>Ex. FDW</b></td></tr>
 			$for index, p in zip(range(num_phases), map(str, range(1, 1 + num_phases))):
-				$ yar, fdw, dir, road, grade, speed, end = [p + suffix for suffix in ['yar', 'fdw', 'dir', 'road', 'grade', 'speed', 'end']]
+				$ yar, fdw_len, dir, road, grade, speed, end, min_walk, mov, fdw = [p + suffix for suffix in ['yar_len', 'fdw_len', 'dir', 'road', 'grade', 'speed', 'end', 'min_walk', 'mov', 'fdw']]
 				<tr>
 				<tr>
 					<td><strong>Phase $p</strong></td>
 					<td>
 						<button type='button' onclick="updateForm('yar', $index, '$p')">Set AR (ft)</button>
-					$if kwargs['yar_len'].split(';')[index]:
-						<b id='$yar'>$kwargs['yar_len'].split(';')[index]'</b>
-					$else:
-						<b id='$yar'>--</b>
+						<input type='text' id='$yar' size='2' placeholder='Len (ft)' maxlength=3 value='$kwargs['yar_len'].split(';')[index]' onBlur="updateTextBox('yar_len', $index, '$p')" />
 					</td>
 					<td>
 						<button type='button' onclick="updateForm('fdw', $index, '$p')">Set PCT (ft)</button>
-					$if kwargs['fdw_len'].split(';')[index]:
-						<b id='$fdw'>$kwargs['fdw_len'].split(';')[index]'</b>
-					$else:
-						<b id='$fdw'>--</b>
+						<input type='text' id='$fdw_len' size='2' placeholder='Len (ft)' maxlength=3 value='$kwargs['fdw_len'].split(';')[index]' onBlur="updateTextBox('fdw_len', $index, '$p')" />
 					</td>
 					<td>
 						$if kwargs['mov'].split(';')[index]=='':
-							| <input type=checkbox onClick="updateMov($index, '$p')" />
+							| <input type=checkbox id='$mov' onClick="updateMov($index, '$p')" />
 						$else:
-							| <input type=checkbox onClick="updateMov($index, '$p')" checked />
+							| <input type=checkbox id='$mov' onClick="updateMov($index, '$p')" checked />
 					</td>
 					<td><input type='text' id='$dir' size='2' placeholder='Dir' maxlength=4 value='$kwargs['dir'].split(';')[index]' onBlur="updateTextBox('dir', $index, '$p')" /></td>
 					<td><input type='text' id='$road' size='15' placeholder='Road Name' value='$kwargs['road'].split(';')[index]' onBlur="updateTextBox('road', $index, '$p')" /></td>
 					<td><input type='text' id='$grade' size='5' placeholder='Grade (%)' value='$kwargs['grade'].split(';')[index]' onBlur="updateTextBox('grade', $index, '$p')" /></td>
 					<td><input type='text' id='$speed' size='8' placeholder='MPH' maxlength=3 value='$kwargs['speed'].split(';')[index]' onBlur="updateTextBox('speed', $index, '$p')" /></td>
 					<td><input type='text' id='$end' size='2' placeholder='&Oslash' value='$kwargs['end'].split(';')[index]' onBlur="updateTextBox('end', $index, '$p')" /></td>
+					<td><input type='text' id='$fdw' size='2' placeholder='sec' value='$kwargs['fdw'].split(';')[index]' onBlur="updateTextBox('fdw', $index, '$p')" /></td>
 				</tr>
 			</table>
 			<input type='submit' value='Update Phasing Information' />
@@ -371,7 +391,7 @@ $ num_phases = 8
 		</form>
 		<form name='phase_info' method='POST' action='update_intersection'>
 		</form>
-		Page 2 of 2
+		Page 3 of 3
 		</div>
 	</div>
 </body>

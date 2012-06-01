@@ -1,3 +1,4 @@
+# Matthew Bond
 import csv
 import cStringIO
 import web
@@ -37,14 +38,16 @@ class home:
 					heading = row[0][1:-1]
 				elif heading=='Nodes' and row[1]=='0':
 					nodes[row[0]] = {'int_id': row[0]}
-					links[row[0]] = []
-					lanes[row[0]] = {'speed': [], 'grade': [], 'phase': [], 'peds': []}
+					links[row[0]] = [[], []]
+					lanes[row[0]] = {'speed': [], 'phase': [], 'peds': []}
 					phases[row[0]] = []
 				elif heading=='Links':
 					if row[0]=='RECORDNAME':
 						links['col'] = row[2:]
+					elif row[0]=='Grade' and row[1] in nodes.keys():
+						links[row[1]][0] = row[2:]
 					elif row[0]=='Name' and row[1] in nodes.keys():
-						links[row[1]] = row[2:]
+						links[row[1]][1] = row[2:]
 				elif heading=='Lanes':
 					if row[0]=='RECORDNAME':
 						lanes['col'] = row[2:]
@@ -52,8 +55,6 @@ class home:
 						continue
 					elif row[0]=='Speed':
 						lanes[row[1]]['speed'] = row[2:]
-					elif row[0]=='Grade':
-						lanes[row[1]]['grade'] = row[2:]
 					elif row[0]=='Phase1':
 						lanes[row[1]]['phase'] = row[2:]
 					elif row[0]=='Peds':
@@ -92,22 +93,20 @@ class home:
 				phase = lanes[int_id]['phase'][index]
 				dirs = lanes['col'][index]
 				speed = lanes[int_id]['speed'][index]
-				grade = lanes[int_id]['grade'][index]
 				peds = lanes[int_id]['peds'][index]
 				mov = ''
 				speed = speed or '0'
-				grade = grade or '0'
 				if 'L' in dirs:
 					mov = 'on'
 					speed = '20'
-				peds = peds or '10'
-				if int(peds) < 1000:
-					walk = '7'
+				peds = peds or '0'
 				if dirs[:2] in links['col']:
 					i = links['col'].index(dirs[:2])
-					road = links[int_id][i]
+					road = links[int_id][1][i]
+					grade = links[int_id][0][i]
 				else:
 					road = ''
+					grade = ''
 				end = []
 				if phase in phase_maxes:
 					barrier = maxes[phase_maxes.index(phase)][0]
@@ -120,7 +119,7 @@ class home:
 				end = ','.join(end)
 
 				if phase in str_phases:
-					matrix.append([phase, dirs, speed, grade, peds, mov, road, end])
+					matrix.append([phase, dirs, speed, grade, mov, road, end])
 					str_phases.pop(str_phases.index(phase))
 			for phase in str_phases:
 				matrix.append([phase] + [''] * 7)
@@ -131,12 +130,12 @@ class home:
 			nodes[int_id]['dir'] = ';'.join(lanes_mod[int_id][1])
 			nodes[int_id]['speed'] = ';'.join(lanes_mod[int_id][2])
 			nodes[int_id]['grade'] = ';'.join(lanes_mod[int_id][3])
-			nodes[int_id]['min_walk'] = ';'.join(lanes_mod[int_id][4])
-			nodes[int_id]['mov'] = ';'.join(lanes_mod[int_id][5])
-			nodes[int_id]['road'] = ';'.join(lanes_mod[int_id][6])
-			nodes[int_id]['end'] = ';'.join(lanes_mod[int_id][7])
+			nodes[int_id]['mov'] = ';'.join(lanes_mod[int_id][4])
+			nodes[int_id]['road'] = ';'.join(lanes_mod[int_id][5])
+			nodes[int_id]['end'] = ';'.join(lanes_mod[int_id][6])
+			nodes[int_id]['min_walk'] = '7'
 
-			names = list(set(links[int_id]))
+			names = list(set(links[int_id][1]))
 			if '' in names:
 				names.remove('')
 				if len(names) > 1:
@@ -204,7 +203,10 @@ class output:
 				continue
 			if turn:
 				min_r = 0.5
-				max_r = 1.0
+				if end[index] != '':
+					max_r = 3.0
+				else:
+					max_r = 1.0
 				y_speed = 20.0
 				r_speed = 1.47 * 20.0
 			else:
@@ -250,11 +252,13 @@ class output:
 		return timings
 	def calcPed(self, kwargs, timings):
 		fdw_len = kwargs['fdw_len'].split(';')
-		min_walks = kwargs['min_walk'].split(';')
+		min_walk = kwargs['min_walk']
+		if(min_walk != '10'):
+			min_walk = '7'
 		for index in range(num_phases):
 			yellow, red = timings[index][:2]
 			length = int(fdw_len[index] or 0)
-			min_walk = float(min_walks[index] or 7)
+			min_walk = float(min_walk)
 			if length==0:
 				timings[index][2:4] = '-', '-'
 				timings[index][6:8] = '-', '-'
@@ -289,6 +293,6 @@ class redirect:
 	def GET(self, path):
 		web.seeother('/' + path)
 
-app = web.application(urls, locals())
 if __name__ == '__main__':
+	app = web.application(urls, globals())
 	app.run()
